@@ -1,9 +1,10 @@
+
 function clickButton(elementId: string){    
     var element = document.getElementById(elementId);
     if (element){
         element.click();
     }            
-}
+} 
 function getNumber(elementId : string){
     var element = document.getElementById(elementId);
     if (!element){
@@ -11,10 +12,12 @@ function getNumber(elementId : string){
     }
     return Number( element.innerText.replace(',','').replace(',','').replace(',',''))
 }
+
 function elementExists(elementId : string) {
     var element = document.getElementById(elementId) ;
     return element != null && element.offsetParent !== null;
 }
+
 function buttonEnabled(elementId : string){
     var element = document.getElementById(elementId);
     if (element == null){
@@ -23,6 +26,7 @@ function buttonEnabled(elementId : string){
     }
     return element.attributes.getNamedItem("disabled") == undefined || element.attributes.getNamedItem("disabled") == null
 }
+
 enum projectPriority {
     Highest,
     High,
@@ -36,6 +40,7 @@ interface IProject {
     run: () => void,
     priority: projectPriority
 }
+
 var projectList : IProject[]= [];
 var initialClipLastRun : number = new Date().getTime() - 11000;
 projectList.push({
@@ -59,7 +64,7 @@ projectList.push({
         }
     }
 })
-//
+// 
 projectList.push({
     name: 'Buy wire when low',
     canRun: () => {
@@ -78,14 +83,15 @@ projectList.push({
         var wire = getNumber('wire');
         var marketingCost = getNumber('adCost');
         var funds = getNumber('funds');
-        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 15 || getNumber('margin') < 0.04);
+
+        return wire > 1500 && marketingCost < funds  && buttonEnabled('btnExpandMarketing');
     },
     priority: projectPriority.High,
     run: () => {
         clickButton('btnExpandMarketing');
     }
 })
-//
+// 
 projectList.push({
     name: 'Adjust price lower',
     canRun: () => {
@@ -117,12 +123,14 @@ projectList.push({
         clickButton('btnRaisePrice');
     }
 })
+
+
 var marketLoadTest : number = new Date().getTime() - 120000;
 // Adjust price higher
 projectList.push({
     name: 'Increasing prices to check market load',
     canRun: () => {        
-        return elementExists('btnRaisePrice') && (new Date()).getTime() - marketLoadTest > 300000 && getNumber('clips') > 10000 && getNumber('unsoldClips') < 10 + getNumber('clipmakerRate') * 5;
+        return elementExists('btnRaisePrice')&& (new Date()).getTime() - marketLoadTest > 180000 && getNumber('clips') > 10000;
     },
     priority: projectPriority.Low,
     run: () => {
@@ -130,10 +138,11 @@ projectList.push({
         for (var i = 0; i < 10; i++){
             setTimeout(() => {                
                 clickButton('btnRaisePrice');
-            }, 4100);
+            }, 2100);
         }
     }
 })
+
 // run projects
 projectList.push({
     name: 'Run projects',
@@ -162,6 +171,8 @@ projectList.push({
 projectList.push({
     name: 'Buy autoclipper',
     canRun: () => {
+
+
         var totalClips = getNumber('clips');
         var wire = getNumber('wire');
         var unsoldClips= getNumber('unsoldClips');
@@ -174,7 +185,7 @@ projectList.push({
                 return true;
             }
         }
-        return elementExists('btnMakeClipper') && buttonEnabled('btnMakeClipper') && getNumber('clipmakerLevel2') - 10  < getNumber('marketingLvl') * 10 && wire > 1000  && getNumber('clipmakerLevel2')  < 150 && getNumber('margin') > 0.02;
+        return elementExists('btnMakeClipper') && buttonEnabled('btnMakeClipper') && getNumber('clipmakerLevel2')  < getNumber('marketingLvl') * 15 && wire > 1000  && getNumber('clipmakerLevel2')  < 150;
     },
     priority: projectPriority.Low,
     run: () => {        
@@ -199,7 +210,7 @@ projectList.push({
                 return true;
             }
         }
-        return elementExists('btnMakeMegaClipper') && buttonEnabled('btnMakeMegaClipper') && getNumber('megaClipperLevel')  < getNumber('marketingLvl') * 8 && wire > 1500 && getNumber('megaClipperLevel')  < 150 && getNumber('margin') > 0.02;
+        return elementExists('btnMakeMegaClipper') && buttonEnabled('btnMakeMegaClipper') && getNumber('megaClipperLevel')  < getNumber('marketingLvl') * 10 && wire > 1500 && getNumber('megaClipperLevel')  < 100;
     },
     priority: projectPriority.Medium,
     run: () => {        
@@ -225,6 +236,7 @@ projectList.push({
         }   
     }
 })
+
 projectList.push({
     name: 'Set investments to medium risk',
     canRun: () => {
@@ -238,39 +250,20 @@ projectList.push({
 projectList.push({
     name: 'Improve investments',
     canRun: () => {
-        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 8;
+        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments');
     },
     priority: projectPriority.Lowest,
     run: () => {        
         clickButton('btnImproveInvestments')
     }
 })
-projectList.push({
-    name: 'Quantum Computing Click',
-    canRun: () => {       
-
-        var qChipItems =   document.getElementsByClassName('qChip')
-        var totalOpacity = 0;
-        for (var i = 0; i < qChipItems.length; i++){ 
-            totalOpacity +=Number( qChipItems[i].style.opacity);
-        }
-        return totalOpacity > 0.2 && getNumber('operations') < getNumber('maxOps');
-    },
-    priority: projectPriority.High,
-    run: () => {        
-        for (var i = 0; i < 10; i++) {
-            setTimeout(function(){  clickButton('btnQcompute'); }, i * 33);
-    }
-    }
-})
-
 var lastDepositTime : number = (new Date()).getTime() - 100000;
 projectList.push({
     name: 'Deposit',
     canRun: () => {
         var trust = getNumber('trust');
         var now : number = (new Date()).getTime();
-        return elementExists('investmentEngine') && elementExists('btnInvest') != null && buttonEnabled('btnInvest') && (trust < 95 || ( trust > 29 && trust < 32)) && (now - lastDepositTime > 30000) && getNumber('investmentLevel') > 0;
+        return elementExists('investmentEngine') && elementExists('btnInvest') != null && buttonEnabled('btnInvest') && (trust < 95 || ( trust > 29 && trust < 32)) && (now - lastDepositTime > 60000);
     },
     priority: projectPriority.Low,
     run: () => {        
@@ -278,21 +271,20 @@ projectList.push({
         lastDepositTime =  (new Date()).getTime();
     }
 })
+
 var lastWithdrawTime : number = (new Date()).getTime();
-var minimumWithdrawAmount : number = 250000;
 projectList.push({
     name: 'Withdraw',
     canRun: () => {
         var trust = getNumber('trust');
         var now : number = (new Date()).getTime();
-        return elementExists('btnWithdraw') != null && buttonEnabled('btnWithdraw')  && (now - lastWithdrawTime > 60000)
-        && trust > 30 && getNumber('investmentBankroll') > minimumWithdrawAmount && getNumber('portValue') > getNumber('investmentBankroll') * 2;
+        return elementExists('btnWithdraw') != null && buttonEnabled('btnWithdraw')  && (now - lastWithdrawTime > 70000) 
+        && trust > 30 && getNumber('investmentBankroll') > 1000000 && getNumber('portValue') > getNumber('investmentBankroll');
     },
     priority: projectPriority.Lowest,
     run: () => {        
         
         lastWithdrawTime =  (new Date()).getTime();
-        minimumWithdrawAmount = minimumWithdrawAmount * 2;
         clickButton('btnWithdraw')
     }
 })
@@ -306,13 +298,15 @@ projectList.push({
         (<HTMLSelectElement>document.getElementById('stratPicker')).selectedIndex = (<HTMLSelectElement>document.getElementById('stratPicker')).length -1;
     }
 })
+
+
 projectList.push({
     name: 'Run tournament',
     canRun: () => {
         var yomi = getNumber('yomiDisplay');          
         var operation = getNumber('operations');    
         var trust = getNumber('trust');
-        return elementExists('investmentEngineUpgrade') && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && yomi < operation && trust >= 23;
+        return elementExists('investmentEngineUpgrade') && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && yomi < operation && trust >= 25;
     },
     priority: projectPriority.Low,
     run: () => {        
@@ -320,9 +314,11 @@ projectList.push({
         setTimeout(() => {
             clickButton('btnRunTournament');
         }, 500);
+
         (<HTMLSelectElement>document.getElementById('stratPicker')).selectedIndex = (<HTMLSelectElement>document.getElementById('stratPicker')).length -1;
     }
 })
+
 var runNextProject = function(){
     var enumsToLoop = [projectPriority.Highest, projectPriority.High, projectPriority.Medium, projectPriority.Low, projectPriority.Lowest]
     for(var i = 0; i < enumsToLoop.length; i++){
@@ -337,8 +333,11 @@ var runNextProject = function(){
     }
     
 }
+
 var automation = function(){
     runNextProject();
     setTimeout(automation,  1000)
 }
 automation();
+
+
