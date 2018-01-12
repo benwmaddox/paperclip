@@ -59,7 +59,7 @@ projectList.push({
     name: 'Buy wire when low',
     canRun: function () {
         var wire = getNumber('wire');
-        return wire < 1500 && buttonEnabled('btnBuyWire') && !elementExists('btnToggleWireBuyer');
+        return wire < 1500 && buttonEnabled('btnBuyWire') && !elementExists('btnToggleWireBuyer') && elementExists('btnBuyWire');
     },
     priority: projectPriority.Highest,
     run: function () {
@@ -89,7 +89,7 @@ projectList.push({
         var clipMakerRate = getNumber('clipmakerRate');
         var averagesale = getNumber('avgSales');
         var rateElement = elementExists('clipmakerRate');
-        return rateElement && totalClips > 800 && (clipMakerRate + 1) * 30 < unsoldClips && unsoldClips > 1000 && averagesale - clipMakerRate < 0 && buttonEnabled('btnLowerPrice');
+        return elementExists('avgSales') && rateElement && totalClips > 800 && (clipMakerRate + 1) * 30 < unsoldClips && unsoldClips >= 1000 && averagesale - clipMakerRate < 0 && buttonEnabled('btnLowerPrice');
     },
     priority: projectPriority.Low,
     run: function () {
@@ -105,7 +105,7 @@ projectList.push({
         var clipMakerRate = getNumber('clipmakerRate');
         var averagesale = getNumber('avgSales');
         var rateElement = elementExists('clipmakerRate');
-        return rateElement && (totalClips > 800 && ((clipMakerRate + 1) * 10 > unsoldClips && averagesale - clipMakerRate > 0) || (totalClips > 1800 && unsoldClips < 1000)) && buttonEnabled('btnRaisePrice');
+        return elementExists('avgSales') && rateElement && (totalClips > 800 && ((clipMakerRate + 1) * 10 > unsoldClips && averagesale - clipMakerRate > 0) || (totalClips > 1800 && unsoldClips < 1000)) && buttonEnabled('btnRaisePrice');
     },
     priority: projectPriority.Low,
     run: function () {
@@ -135,7 +135,7 @@ projectList.push({
     canRun: function () {
         var projectButtons = document.getElementsByClassName('projectButton');
         for (var i = 0; i < projectButtons.length; i++) {
-            if (buttonEnabled(projectButtons[i].id)) {
+            if (elementExists(projectButtons[i].id) && buttonEnabled(projectButtons[i].id) && (getNumber('memory') < 12 || getNumber('creativity') > getNumber('trust') * 10)) {
                 return true;
             }
         }
@@ -158,16 +158,6 @@ projectList.push({
     canRun: function () {
         var totalClips = getNumber('clips');
         var wire = getNumber('wire');
-        var unsoldClips = getNumber('unsoldClips');
-        var clipMakerRate = getNumber('clipmakerRate');
-        var averagesale = getNumber('avgSales');
-        var rateElement = elementExists('clipmakerRate');
-        var projectButtons = document.getElementsByClassName('projectButton');
-        for (var i = 0; i < projectButtons.length; i++) {
-            if (buttonEnabled(projectButtons[i].id)) {
-                return true;
-            }
-        }
         return elementExists('btnMakeClipper') && buttonEnabled('btnMakeClipper') && getNumber('clipmakerLevel2') - 10 < getNumber('marketingLvl') * 10 && wire > 1000 && getNumber('clipmakerLevel2') < 150 && getNumber('margin') > 0.02;
     },
     priority: projectPriority.Low,
@@ -180,17 +170,6 @@ projectList.push({
     name: 'Buy mega clippers',
     canRun: function () {
         var wire = getNumber('wire');
-        var totalClips = getNumber('clips');
-        var unsoldClips = getNumber('unsoldClips');
-        var clipMakerRate = getNumber('clipmakerRate');
-        var averagesale = getNumber('avgSales');
-        var rateElement = elementExists('clipmakerRate');
-        var projectButtons = document.getElementsByClassName('projectButton');
-        for (var i = 0; i < projectButtons.length; i++) {
-            if (buttonEnabled(projectButtons[i].id)) {
-                return true;
-            }
-        }
         return elementExists('btnMakeMegaClipper') && buttonEnabled('btnMakeMegaClipper') && getNumber('megaClipperLevel') < getNumber('marketingLvl') * 8 && wire > 1500 && getNumber('megaClipperLevel') < 150 && getNumber('margin') > 0.02;
     },
     priority: projectPriority.Medium,
@@ -208,7 +187,7 @@ projectList.push({
     run: function () {
         var processors = getNumber('processors');
         var memory = getNumber('memory');
-        if (processors < 25 && (processors < 5 || processors * 3 < memory)) {
+        if ((processors < 5 || processors * 4 < memory || memory > 300)) {
             clickButton('btnAddProc');
         }
         else {
@@ -311,6 +290,79 @@ projectList.push({
         document.getElementById('stratPicker').selectedIndex = document.getElementById('stratPicker').length - 1;
     }
 });
+// Space
+projectList.push({
+    name: 'Make Probe',
+    canRun: function () {
+        return elementExists('btnMakeProbe') && getNumber('probesLaunchedDisplay') < 100;
+    },
+    priority: projectPriority.Lowest,
+    run: function () {
+        clickButton('btnMakeProbe');
+    }
+});
+projectList.push({
+    name: 'Rebalance Probes',
+    canRun: function () {
+        return elementExists('probeTrustUsedDisplay') && getNumber('probeTrustUsedDisplay') == getNumber('probeTrustDisplay');
+    },
+    priority: projectPriority.Lowest,
+    run: function () {
+        if (!elementExists('nanoWire')) {
+            return false;
+        }
+        var remaining = getNumber('probeTrustDisplay');
+        //probeCombatDisplay
+        for (var i = 0; i < remaining; i++) {
+            clickButton('btnLowerProbeSpeed');
+            clickButton('btnLowerProbeNav');
+            clickButton('btnLowerProbeRep');
+            clickButton('btnLowerProbeHaz');
+            clickButton('btnLowerProbeFac');
+            clickButton('btnLowerProbeHarv');
+            clickButton('btnLowerProbeWire');
+            clickButton('btnLowerProbeCombat');
+        }
+        var nanoWire = 0;
+        if (getNumber('nanoWire') == 0 || getNumber('acquiredMatterDisplay') > getNumber('nanoWire')) {
+            nanoWire++;
+            remaining--;
+        }
+        var acquiredMatter = 0;
+        if (getNumber('acquiredMatterDisplay') == 0 || getNumber('availableMatterDisplay') > getNumber('acquiredMatterDisplay')) {
+            acquiredMatter++;
+            remaining--;
+        }
+        var speed = 0;
+        var exploration = 0;
+        if (getNumber('availableMatterDisplay') == 0) {
+            speed++;
+            exploration++;
+            remaining -= 2;
+        }
+        var combat = 0;
+        if (elementExists('probeCombatDisplay')) {
+            var combatChange = remaining / 4;
+            combat = combatChange;
+            remaining -= combatChange;
+        }
+        while (nanoWire-- > 0) {
+            clickButton('btnRaiseProbeWire');
+        }
+        while (acquiredMatter-- > 0) {
+            clickButton('btnRaiseProbeHarv');
+        }
+        while (speed-- > 0) {
+            clickButton('btnRaiseProbeSpeed');
+        }
+        while (exploration-- > 0) {
+            clickButton('btnRaiseProbeNav');
+        }
+        while (combat-- > 0) {
+            clickButton('btnRaiseProbeCombat');
+        }
+    }
+});
 var runNextProject = function () {
     var enumsToLoop = [projectPriority.Highest, projectPriority.High, projectPriority.Medium, projectPriority.Low, projectPriority.Lowest];
     for (var i = 0; i < enumsToLoop.length; i++) {
@@ -329,52 +381,3 @@ var automation = function () {
     setTimeout(automation, 1000);
 };
 automation();
-var Cost = (function () {
-    function Cost() {
-        this.ops = 0;
-        this.trust = 0;
-        this.yomi = 0;
-        this.creat = 0;
-    }
-    return Cost;
-}());
-var findCostsForProjects = function () {
-    var projectButtons = document.getElementsByClassName("projectButton");
-    var results = [];
-    for (var i = 0; i < projectButtons.length; i++) {
-        var innerText = projectButtons[i].innerText;
-        var costText = innerText.substring(innerText.indexOf("(") + 1, innerText.indexOf(")"));
-        var split = costText.split(", ");
-        var cost = new Cost();
-        results.push(cost);
-        for (var j = 0; j < split.length; j++) {
-            var item = split[j].trim();
-            var valueAndType = item.split(" ");
-            var value = Number(valueAndType[0].replace(",", "").replace(",", "").replace(",", "").replace(",", ""));
-            if (valueAndType[1] === "ops") {
-                cost.ops = value;
-            }
-            if (valueAndType[1] === "Trust") {
-                cost.trust = value;
-            }
-            if (valueAndType[1] === "yomi") {
-                cost.yomi = value;
-            }
-            if (valueAndType[1] === "creat") {
-                cost.creat = value;
-            }
-        }
-    }
-    return results;
-};
-var sumCosts = function (costs) {
-    var sum = new Cost();
-    for (var i = 0; i < costs.length; i++) {
-        sum.creat += costs[i].creat || 0;
-        sum.ops += costs[i].ops || 0;
-        sum.trust += costs[i].trust || 0;
-        sum.yomi += costs[i].yomi || 0;
-    }
-    return sum;
-};
-// Find next of each number that is beyond what user currently has. Use that as a goal 
