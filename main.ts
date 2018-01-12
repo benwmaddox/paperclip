@@ -292,7 +292,7 @@ projectList.push({
         var yomi = getNumber('yomiDisplay');          
         var operation = getNumber('operations');    
         var trust = getNumber('trust');
-        return elementExists('investmentEngineUpgrade') && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && yomi < operation && trust >= 23;
+        return elementExists('investmentEngineUpgrade') && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && (yomi < operation / 3) && trust >= 22 && getNumber('maxOps') === getNumber('operations');
     },
     priority: projectPriority.Low,
     run: () => {        
