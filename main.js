@@ -54,7 +54,7 @@ projectList.push({
         }
     }
 });
-// 
+//
 projectList.push({
     name: 'Buy wire when low',
     canRun: function () {
@@ -73,14 +73,14 @@ projectList.push({
         var wire = getNumber('wire');
         var marketingCost = getNumber('adCost');
         var funds = getNumber('funds');
-        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing');
+        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 15 || getNumber('margin') < 0.04);
     },
     priority: projectPriority.High,
     run: function () {
         clickButton('btnExpandMarketing');
     }
 });
-// 
+//
 projectList.push({
     name: 'Adjust price lower',
     canRun: function () {
@@ -117,7 +117,7 @@ var marketLoadTest = new Date().getTime() - 120000;
 projectList.push({
     name: 'Increasing prices to check market load',
     canRun: function () {
-        return elementExists('btnRaisePrice') && (new Date()).getTime() - marketLoadTest > 180000 && getNumber('clips') > 10000;
+        return elementExists('btnRaisePrice') && (new Date()).getTime() - marketLoadTest > 300000 && getNumber('clips') > 10000 && getNumber('unsoldClips') < 10 + getNumber('clipmakerRate') * 5;
     },
     priority: projectPriority.Low,
     run: function () {
@@ -125,7 +125,7 @@ projectList.push({
         for (var i = 0; i < 10; i++) {
             setTimeout(function () {
                 clickButton('btnRaisePrice');
-            }, 2100);
+            }, 4100);
         }
     }
 });
@@ -168,7 +168,7 @@ projectList.push({
                 return true;
             }
         }
-        return elementExists('btnMakeClipper') && buttonEnabled('btnMakeClipper') && getNumber('clipmakerLevel2') < getNumber('marketingLvl') * 15 && wire > 1000 && getNumber('clipmakerLevel2') < 150;
+        return elementExists('btnMakeClipper') && buttonEnabled('btnMakeClipper') && getNumber('clipmakerLevel2') - 10 < getNumber('marketingLvl') * 10 && wire > 1000 && getNumber('clipmakerLevel2') < 150 && getNumber('margin') > 0.02;
     },
     priority: projectPriority.Low,
     run: function () {
@@ -191,7 +191,7 @@ projectList.push({
                 return true;
             }
         }
-        return elementExists('btnMakeMegaClipper') && buttonEnabled('btnMakeMegaClipper') && getNumber('megaClipperLevel') < getNumber('marketingLvl') * 10 && wire > 1500 && getNumber('megaClipperLevel') < 100;
+        return elementExists('btnMakeMegaClipper') && buttonEnabled('btnMakeMegaClipper') && getNumber('megaClipperLevel') < getNumber('marketingLvl') * 8 && wire > 1500 && getNumber('megaClipperLevel') < 150 && getNumber('margin') > 0.02;
     },
     priority: projectPriority.Medium,
     run: function () {
@@ -229,11 +229,28 @@ projectList.push({
 projectList.push({
     name: 'Improve investments',
     canRun: function () {
-        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments');
+        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 8;
     },
     priority: projectPriority.Lowest,
     run: function () {
         clickButton('btnImproveInvestments');
+    }
+});
+projectList.push({
+    name: 'Quantum Computing Click',
+    canRun: function () {
+        var qChipItems = document.getElementsByClassName('qChip');
+        var totalOpacity = 0;
+        for (var i = 0; i < qChipItems.length; i++) {
+            totalOpacity += Number(qChipItems[i].style.opacity);
+        }
+        return totalOpacity > 0.2 && getNumber('operations') < getNumber('maxOps');
+    },
+    priority: projectPriority.High,
+    run: function () {
+        for (var i = 0; i < 10; i++) {
+            setTimeout(function () { clickButton('btnQcompute'); }, i * 33);
+        }
     }
 });
 var lastDepositTime = (new Date()).getTime() - 100000;
@@ -242,7 +259,7 @@ projectList.push({
     canRun: function () {
         var trust = getNumber('trust');
         var now = (new Date()).getTime();
-        return elementExists('investmentEngine') && elementExists('btnInvest') != null && buttonEnabled('btnInvest') && (trust < 95 || (trust > 29 && trust < 32)) && (now - lastDepositTime > 60000);
+        return elementExists('investmentEngine') && elementExists('btnInvest') != null && buttonEnabled('btnInvest') && (trust < 95 || (trust > 29 && trust < 32)) && (now - lastDepositTime > 30000) && getNumber('investmentLevel') > 0;
     },
     priority: projectPriority.Low,
     run: function () {
@@ -251,17 +268,19 @@ projectList.push({
     }
 });
 var lastWithdrawTime = (new Date()).getTime();
+var minimumWithdrawAmount = 250000;
 projectList.push({
     name: 'Withdraw',
     canRun: function () {
         var trust = getNumber('trust');
         var now = (new Date()).getTime();
-        return elementExists('btnWithdraw') != null && buttonEnabled('btnWithdraw') && (now - lastWithdrawTime > 70000)
-            && trust > 30 && getNumber('investmentBankroll') > 1000000 && getNumber('portValue') > getNumber('investmentBankroll');
+        return elementExists('btnWithdraw') != null && buttonEnabled('btnWithdraw') && (now - lastWithdrawTime > 60000)
+            && trust > 30 && getNumber('investmentBankroll') > minimumWithdrawAmount && getNumber('portValue') > getNumber('investmentBankroll') * 2;
     },
     priority: projectPriority.Lowest,
     run: function () {
         lastWithdrawTime = (new Date()).getTime();
+        minimumWithdrawAmount = minimumWithdrawAmount * 2;
         clickButton('btnWithdraw');
     }
 });
@@ -281,7 +300,7 @@ projectList.push({
         var yomi = getNumber('yomiDisplay');
         var operation = getNumber('operations');
         var trust = getNumber('trust');
-        return elementExists('investmentEngineUpgrade') && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && yomi < operation && trust >= 25;
+        return elementExists('investmentEngineUpgrade') && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && yomi < operation && trust >= 23;
     },
     priority: projectPriority.Low,
     run: function () {
@@ -310,3 +329,52 @@ var automation = function () {
     setTimeout(automation, 1000);
 };
 automation();
+var Cost = (function () {
+    function Cost() {
+        this.ops = 0;
+        this.trust = 0;
+        this.yomi = 0;
+        this.creat = 0;
+    }
+    return Cost;
+}());
+var findCostsForProjects = function () {
+    var projectButtons = document.getElementsByClassName("projectButton");
+    var results = [];
+    for (var i = 0; i < projectButtons.length; i++) {
+        var innerText = projectButtons[i].innerText;
+        var costText = innerText.substring(innerText.indexOf("(") + 1, innerText.indexOf(")"));
+        var split = costText.split(", ");
+        var cost = new Cost();
+        results.push(cost);
+        for (var j = 0; j < split.length; j++) {
+            var item = split[j].trim();
+            var valueAndType = item.split(" ");
+            var value = Number(valueAndType[0].replace(",", "").replace(",", "").replace(",", "").replace(",", ""));
+            if (valueAndType[1] === "ops") {
+                cost.ops = value;
+            }
+            if (valueAndType[1] === "Trust") {
+                cost.trust = value;
+            }
+            if (valueAndType[1] === "yomi") {
+                cost.yomi = value;
+            }
+            if (valueAndType[1] === "creat") {
+                cost.creat = value;
+            }
+        }
+    }
+    return results;
+};
+var sumCosts = function (costs) {
+    var sum = new Cost();
+    for (var i = 0; i < costs.length; i++) {
+        sum.creat += costs[i].creat || 0;
+        sum.ops += costs[i].ops || 0;
+        sum.trust += costs[i].trust || 0;
+        sum.yomi += costs[i].yomi || 0;
+    }
+    return sum;
+};
+// Find next of each number that is beyond what user currently has. Use that as a goal 
