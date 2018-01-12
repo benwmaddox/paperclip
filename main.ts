@@ -140,7 +140,8 @@ projectList.push({
     canRun: () => {
         var projectButtons  =  document.getElementsByClassName('projectButton');
         for (var i = 0; i < projectButtons.length; i++){
-            if (elementExists(projectButtons[i].id) && buttonEnabled(projectButtons[i].id) && (getNumber('memory') < 12 || getNumber('creativity') > getNumber('trust') * 10) ){
+            // Force creativity use too
+            if (elementExists(projectButtons[i].id) && buttonEnabled(projectButtons[i].id) && (getNumber('memory') < 10 || getNumber('creativity') > getNumber('trust') * 10) ){
                 return true;
             }
         }
@@ -304,6 +305,95 @@ projectList.push({
 })
 
 
+// Level 2
+
+projectList.push({
+    name: 'Make Solar',
+    canRun: () => {        
+        var consumption = getNumber('powerConsumptionRate');
+        var production = getNumber('powerProductionRate');
+        return elementExists('btnMakeFarm') && consumption * 1.5 >= production && buttonEnabled('btnMakeFarm') ;
+    },
+    priority: projectPriority.Lowest,
+    run: () => {    
+        clickButton('btnMakeFarm');
+    }
+})
+projectList.push({
+    name: 'Make Solar X 100',
+    canRun: () => {        
+        var consumption = getNumber('powerConsumptionRate');
+        var production = getNumber('powerProductionRate');
+        return elementExists('btnFarmx100') && consumption * 1.5 >= production && buttonEnabled('btnFarmx100') ;
+    },
+    priority: projectPriority.Low,
+    run: () => {    
+        clickButton('btnFarmx100');
+    }
+})
+projectList.push({
+    name: 'Make Battery Storage',
+    canRun: () => {        
+        return elementExists('btnMakeBattery') && buttonEnabled('btnMakeBattery') && getNumber('maxStorage') < 1000000 && getNumber('maxStorage') == getNumber('storedPower');        
+    },
+    priority: projectPriority.Lowest,
+    run: () => {    
+        clickButton('btnMakeBattery');
+    }
+})
+projectList.push({
+    name: 'Make Factory',
+    canRun: () => {        
+        return elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175;        
+    },
+    priority: projectPriority.Lowest,
+    run: () => {    
+        clickButton('btnMakeFactory');
+    }
+})
+
+projectList.push({
+    name: 'Make Harvester',
+    canRun: () => {        
+        return elementExists('btnMakeHarvester') && buttonEnabled('btnMakeHarvester') && getNumber('harvesterLevelDisplay') < 25000;        
+    },
+    priority: projectPriority.Lowest,
+    run: () => {    
+        clickButton('btnMakeHarvester');
+    }
+})
+projectList.push({
+    name: 'Make Wire Drone',
+    canRun: () => {        
+        return elementExists('btnMakeWireDrone') && buttonEnabled('btnMakeWireDrone') && getNumber('wireDroneLevelDisplay') < 25000;        
+    },
+    priority: projectPriority.Lowest,
+    run: () => {    
+        clickButton('btnMakeWireDrone');
+    }
+})
+
+projectList.push({
+    name: 'Make Harvester X 1000',
+    canRun: () => {        
+        return elementExists('btnHarvesterx1000') && buttonEnabled('btnHarvesterx1000') && getNumber('harvesterLevelDisplay') < 24000;        
+    },
+    priority: projectPriority.Low,
+    run: () => {    
+        clickButton('btnHarvesterx1000');
+    }
+})
+projectList.push({
+    name: 'Make Wire Drone X 1000',
+    canRun: () => {        
+        return elementExists('btnWireDronex1000') && buttonEnabled('btnWireDronex1000') && getNumber('wireDroneLevelDisplay') < 24000;        
+    },
+    priority: projectPriority.Low,
+    run: () => {    
+        clickButton('btnWireDronex1000');
+    }
+})
+
 
 
 
@@ -355,7 +445,7 @@ projectList.push({
         }    
         var speed= 0;
         var exploration= 0;
-        if (getNumber('availableMatterDisplay') == 0){
+        if (getNumber('availableMatterDisplay') == 0 && remaining > 1){
             speed++;        
             exploration++;
             remaining -= 2;
@@ -366,6 +456,10 @@ projectList.push({
             var combatChange = remaining / 4;
             combat = combatChange;
             remaining -= combatChange;
+        }
+        while (remaining > 0){
+            // Fill up other stuff
+            remaining--;
         }
         
         while (nanoWire-- > 0){          
