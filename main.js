@@ -249,6 +249,20 @@ projectList.push({
         lastDepositTime = (new Date()).getTime();
     }
 });
+var lastSliderTime = (new Date()).getTime() - 90000;
+projectList.push({
+    name: 'Set slider somewhere near the middle',
+    canRun: function () {
+        return elementExists('slider') && (new Date().getTime() - lastSliderTime > 90000);
+    },
+    priority: projectPriority.High,
+    run: function () {
+        var slider = document.getElementById('slider');
+        var random = ((Math.random() * 0.5) * Number(slider.max)) + Number(slider.max) * 0.25;
+        slider.value = random.toString();
+        lastSliderTime = (new Date()).getTime();
+    }
+});
 var lastWithdrawTime = (new Date()).getTime();
 var minimumWithdrawAmount = 250000;
 projectList.push({
@@ -294,6 +308,16 @@ projectList.push({
     }
 });
 // Level 2
+projectList.push({
+    name: 'Entertain the Swarm',
+    canRun: function () {
+        return elementExists('btnEntertainSwarm') && buttonEnabled('btnEntertainSwarm');
+    },
+    priority: projectPriority.High,
+    run: function () {
+        clickButton('btnEntertainSwarm');
+    }
+});
 projectList.push({
     name: 'Make Solar',
     canRun: function () {
@@ -385,9 +409,29 @@ projectList.push({
             && (getNumber('wireDroneLevelDisplay') < 250 || getNumber('factoryLevelDisplay') > 10)
             && (getNumber('wireDroneLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20);
     },
-    priority: projectPriority.Low,
+    priority: projectPriority.Lowest,
     run: function () {
         clickButton('btnMakeWireDrone');
+    }
+});
+projectList.push({
+    name: 'Make Harvester X 100',
+    canRun: function () {
+        return elementExists('btnHarvesterx100') && buttonEnabled('btnHarvesterx100') && getNumber('harvesterLevelDisplay') < 24900;
+    },
+    priority: projectPriority.Medium,
+    run: function () {
+        clickButton('btnHarvesterx100');
+    }
+});
+projectList.push({
+    name: 'Make Wire Drone X 100',
+    canRun: function () {
+        return elementExists('btnWireDronex100') && buttonEnabled('btnWireDronex100') && getNumber('wireDroneLevelDisplay') < 24900;
+    },
+    priority: projectPriority.Medium,
+    run: function () {
+        clickButton('btnWireDronex100');
     }
 });
 projectList.push({
@@ -395,7 +439,7 @@ projectList.push({
     canRun: function () {
         return elementExists('btnHarvesterx1000') && buttonEnabled('btnHarvesterx1000') && getNumber('harvesterLevelDisplay') < 24000;
     },
-    priority: projectPriority.Medium,
+    priority: projectPriority.High,
     run: function () {
         clickButton('btnHarvesterx1000');
     }
@@ -405,16 +449,26 @@ projectList.push({
     canRun: function () {
         return elementExists('btnWireDronex1000') && buttonEnabled('btnWireDronex1000') && getNumber('wireDroneLevelDisplay') < 24000;
     },
-    priority: projectPriority.Medium,
+    priority: projectPriority.High,
     run: function () {
         clickButton('btnWireDronex1000');
     }
 });
 // Space
 projectList.push({
+    name: 'Increase Probe Trust',
+    canRun: function () {
+        return elementExists('btnIncreaseProbeTrust') && buttonEnabled('btnIncreaseProbeTrust');
+    },
+    priority: projectPriority.Lowest,
+    run: function () {
+        clickButton('btnIncreaseProbeTrust');
+    }
+});
+projectList.push({
     name: 'Make Probe',
     canRun: function () {
-        return elementExists('btnMakeProbe') && getNumber('probesLaunchedDisplay') < 100;
+        return elementExists('btnMakeProbe') && getNumber('probesTotalDisplay') < 1000;
     },
     priority: projectPriority.Lowest,
     run: function () {
@@ -422,11 +476,32 @@ projectList.push({
     }
 });
 projectList.push({
+    name: 'Sync Swarm',
+    canRun: function () {
+        return elementExists('btnSynchSwarm') && buttonEnabled('btnSynchSwarm');
+    },
+    priority: projectPriority.High,
+    run: function () {
+        clickButton('btnSynchSwarm');
+    }
+});
+projectList.push({
+    name: 'Increase Max Trust',
+    canRun: function () {
+        return elementExists('btnIncreaseMaxTrust') && buttonEnabled('btnIncreaseMaxTrust');
+    },
+    priority: projectPriority.High,
+    run: function () {
+        clickButton('btnIncreaseMaxTrust');
+    }
+});
+var rebalanceProbeLastRun = new Date().getTime() - 60000;
+projectList.push({
     name: 'Rebalance Probes',
     canRun: function () {
-        return elementExists('probeTrustUsedDisplay') && getNumber('probeTrustUsedDisplay') == getNumber('probeTrustDisplay');
+        return elementExists('probeTrustUsedDisplay') && (new Date().getTime() - rebalanceProbeLastRun > 15000);
     },
-    priority: projectPriority.Lowest,
+    priority: projectPriority.Medium,
     run: function () {
         if (!elementExists('nanoWire')) {
             return false;
@@ -443,48 +518,106 @@ projectList.push({
             clickButton('btnLowerProbeWire');
             clickButton('btnLowerProbeCombat');
         }
+        var rep = 0;
+        var haz = 0;
+        if (Math.random() > 0.9) {
+            // Replicate like crazy
+            while (remaining > 6) {
+                rep++;
+                haz++;
+                remaining -= 2;
+            }
+        }
         var nanoWire = 0;
-        if (getNumber('nanoWire') == 0 || getNumber('acquiredMatterDisplay') > getNumber('nanoWire')) {
+        if (document.getElementById('acquiredMatterDisplay').innerText != "0" && getNumber('nanoWire') == 0) {
             nanoWire++;
             remaining--;
         }
         var acquiredMatter = 0;
-        if (getNumber('acquiredMatterDisplay') == 0 || getNumber('availableMatterDisplay') > getNumber('acquiredMatterDisplay')) {
+        if (document.getElementById('availableMatterDisplay').innerText != "0" && getNumber('acquiredMatterDisplay') == 0) {
             acquiredMatter++;
             remaining--;
         }
-        var speed = 0;
-        var exploration = 0;
+        var speed = 1;
+        var exploration = 1;
+        remaining -= 2;
         if (getNumber('availableMatterDisplay') == 0 && remaining > 1) {
-            speed++;
-            exploration++;
-            remaining -= 2;
+            var availableMatterSearch = Math.floor(remaining / 5);
+            speed += availableMatterSearch;
+            exploration += availableMatterSearch;
+            remaining -= availableMatterSearch * 2;
+        }
+        var factory = 0;
+        if (document.getElementById('nanoWire').innerText != "0" && remaining > 0) {
+            factory++;
+            remaining--;
         }
         var combat = 0;
         if (elementExists('probeCombatDisplay')) {
-            var combatChange = remaining / 4;
+            var combatChange = Math.floor(remaining / 3);
             combat = combatChange;
             remaining -= combatChange;
         }
-        while (remaining > 0) {
-            // Fill up other stuff
+        if (remaining > 30) {
+            rep++;
+            remaining--;
+            haz++;
+            remaining--;
+            nanoWire++;
+            remaining--;
+            acquiredMatter++;
+            remaining--;
+            factory++;
             remaining--;
         }
-        while (nanoWire-- > 0) {
-            clickButton('btnRaiseProbeWire');
+        while (remaining > 14) {
+            rep += 2;
+            remaining -= 2;
+            haz += 2;
+            remaining -= 2;
+            if (rep > 5) {
+                speed++;
+                remaining--;
+                exploration++;
+                remaining--;
+            }
         }
-        while (acquiredMatter-- > 0) {
-            clickButton('btnRaiseProbeHarv');
+        while (remaining > 0) {
+            // Fill up other stuff
+            if (remaining-- > 0) {
+                rep++;
+            }
+            if (remaining-- > 0) {
+                haz++;
+            }
         }
-        while (speed-- > 0) {
-            clickButton('btnRaiseProbeSpeed');
-        }
-        while (exploration-- > 0) {
-            clickButton('btnRaiseProbeNav');
-        }
-        while (combat-- > 0) {
-            clickButton('btnRaiseProbeCombat');
-        }
+        setTimeout(function () {
+            while (factory-- > 0) {
+                clickButton('btnRaiseProbeFac');
+            }
+            while (rep-- > 0) {
+                clickButton('btnRaiseProbeRep');
+            }
+            while (haz-- > 0) {
+                clickButton('btnRaiseProbeHaz');
+            }
+            while (nanoWire-- > 0) {
+                clickButton('btnRaiseProbeWire');
+            }
+            while (acquiredMatter-- > 0) {
+                clickButton('btnRaiseProbeHarv');
+            }
+            while (speed-- > 0) {
+                clickButton('btnRaiseProbeSpeed');
+            }
+            while (exploration-- > 0) {
+                clickButton('btnRaiseProbeNav');
+            }
+            while (combat-- > 0) {
+                clickButton('btnRaiseProbeCombat');
+            }
+        }, 100);
+        rebalanceProbeLastRun = new Date().getTime();
     }
 });
 var runNextProject = function () {
