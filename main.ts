@@ -78,7 +78,7 @@ projectList.push({
         var wire = getNumber('wire');
         var marketingCost = getNumber('adCost');
         var funds = getNumber('funds');
-        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 15 || getNumber('margin') < 0.04);
+        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 17 || getNumber('margin') < 0.05);
     },
     priority: projectPriority.High,
     run: () => {
@@ -165,7 +165,9 @@ projectList.push({
     canRun: () => {
         var totalClips = getNumber('clips');
         var wire = getNumber('wire');    
-        return elementExists('btnMakeClipper') && buttonEnabled('btnMakeClipper') && getNumber('clipmakerLevel2') - 10  < getNumber('marketingLvl') * 10 && wire > 1000  && getNumber('clipmakerLevel2')  < 150 && getNumber('margin') > 0.02;
+        return elementExists('btnMakeClipper') && buttonEnabled('btnMakeClipper') && getNumber('clipmakerLevel2') - 10  < getNumber('marketingLvl') * 10 && wire > 1000  && getNumber('clipmakerLevel2')  < 130 && getNumber('margin') > 0.02
+        && (getNumber('avgRev') * 10 > getNumber('clipperCost') - 1000)
+        ;
     },
     priority: projectPriority.Low,
     run: () => {        
@@ -179,7 +181,8 @@ projectList.push({
     name: 'Buy mega clippers',
     canRun: () => {
         var wire = getNumber('wire');
-        return elementExists('btnMakeMegaClipper') && buttonEnabled('btnMakeMegaClipper') && getNumber('megaClipperLevel')  < getNumber('marketingLvl') * 8 && wire > 1500 && getNumber('megaClipperLevel')  < 150 && getNumber('margin') > 0.02;
+        return elementExists('btnMakeMegaClipper') && buttonEnabled('btnMakeMegaClipper') && getNumber('megaClipperLevel')  < getNumber('marketingLvl') * 8 && wire > 1500 && getNumber('megaClipperLevel')  < 105 && getNumber('margin') > 0.02
+        && (getNumber('avgRev') * 10 > getNumber('megaClipperCost') - 1000);
     },
     priority: projectPriority.Medium,
     run: () => {        
@@ -197,7 +200,7 @@ projectList.push({
     run: () => {        
         var processors  = getNumber('processors');
         var memory =getNumber('memory') ;
-        if ((processors < 5 || processors * 4 < memory || memory > 300)) {
+        if ((processors < 5 || processors * 3 < memory || memory > 300)) {
             clickButton('btnAddProc');
         }
         else {
@@ -218,7 +221,7 @@ projectList.push({
 projectList.push({
     name: 'Improve investments',
     canRun: () => {
-        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 8;
+        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 11;
     },
     priority: projectPriority.Lowest,
     run: () => {        
@@ -265,7 +268,7 @@ projectList.push({
     canRun: () => {
         var trust = getNumber('trust');
         var now : number = (new Date()).getTime();
-        return elementExists('btnWithdraw') != null && buttonEnabled('btnWithdraw')  && (now - lastWithdrawTime > 60000)
+        return elementExists('btnWithdraw') != null && buttonEnabled('btnWithdraw')  && (now - lastWithdrawTime > 30000)
         && trust > 30 && getNumber('investmentBankroll') > minimumWithdrawAmount && getNumber('portValue') > getNumber('investmentBankroll') * 2;
     },
     priority: projectPriority.Lowest,
@@ -292,7 +295,7 @@ projectList.push({
         var yomi = getNumber('yomiDisplay');          
         var operation = getNumber('operations');    
         var trust = getNumber('trust');
-        return elementExists('investmentEngineUpgrade') && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && (yomi < operation / 3) && trust >= 22 && getNumber('maxOps') === getNumber('operations');
+        return elementExists('investmentEngineUpgrade') && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && (yomi < operation / 2) && trust >= 22 && getNumber('maxOps') === getNumber('operations');
     },
     priority: projectPriority.Low,
     run: () => {        
@@ -312,9 +315,9 @@ projectList.push({
     canRun: () => {        
         var consumption = getNumber('powerConsumptionRate');
         var production = getNumber('powerProductionRate');
-        return elementExists('btnMakeFarm') && consumption * 1.5 >= production && buttonEnabled('btnMakeFarm') ;
+        return elementExists('btnMakeFarm') && consumption * 1.2 >= production && buttonEnabled('btnMakeFarm') ;
     },
-    priority: projectPriority.Lowest,
+    priority: projectPriority.Low,
     run: () => {    
         clickButton('btnMakeFarm');
     }
@@ -324,9 +327,9 @@ projectList.push({
     canRun: () => {        
         var consumption = getNumber('powerConsumptionRate');
         var production = getNumber('powerProductionRate');
-        return elementExists('btnFarmx100') && consumption * 1.5 >= production && buttonEnabled('btnFarmx100') ;
+        return elementExists('btnFarmx100') && consumption * 1.2 >= production && buttonEnabled('btnFarmx100') ;
     },
-    priority: projectPriority.Low,
+    priority: projectPriority.Medium,
     run: () => {    
         clickButton('btnFarmx100');
     }
@@ -334,19 +337,47 @@ projectList.push({
 projectList.push({
     name: 'Make Battery Storage',
     canRun: () => {        
-        return elementExists('btnMakeBattery') && buttonEnabled('btnMakeBattery') && getNumber('maxStorage') < 1000000 && getNumber('maxStorage') == getNumber('storedPower');        
+        return elementExists('btnMakeBattery') && buttonEnabled('btnMakeBattery') && getNumber('maxStorage') < 10000000 && getNumber('maxStorage') == getNumber('storedPower');        
     },
-    priority: projectPriority.Lowest,
+    priority: projectPriority.Low,
     run: () => {    
         clickButton('btnMakeBattery');
     }
 })
 projectList.push({
+    name: 'Make Battery Storage X 10',
+    canRun: () => {        
+        return elementExists('btnBatteryx10') && buttonEnabled('btnBatteryx10') && getNumber('maxStorage') < 9900000 && getNumber('maxStorage') == getNumber('storedPower');        
+    },
+    priority: projectPriority.Medium,
+    run: () => {    
+        clickButton('btnBatteryx10');
+    }
+})
+projectList.push({
+    name: 'Make Battery Storage X 100',
+    canRun: () => {        
+        return elementExists('btnBatteryx100') && buttonEnabled('btnBatteryx100') && getNumber('maxStorage') < 9000000 && getNumber('maxStorage') == getNumber('storedPower');        
+    },
+    priority: projectPriority.High,
+    run: () => {    
+        clickButton('btnBatteryx100');
+    }
+})
+var productionWorking = function() {
+     return getNumber('harvesterLevelDisplay')>0 &&
+     getNumber('wireDroneLevelDisplay')>0 &&
+     getNumber('factoryLevelDisplay')>0 &&
+     getNumber('farmLevel')>0 &&
+     getNumber('batteryLevel')>0 &&
+     (getNumber('powerConsumptionRate') * 1.1 <= getNumber('powerProductionRate'))    ;
+}
+projectList.push({
     name: 'Make Factory',
     canRun: () => {        
-        return elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175;        
+        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 200;        
     },
-    priority: projectPriority.Lowest,
+    priority: projectPriority.Medium,
     run: () => {    
         clickButton('btnMakeFactory');
     }
@@ -355,7 +386,10 @@ projectList.push({
 projectList.push({
     name: 'Make Harvester',
     canRun: () => {        
-        return elementExists('btnMakeHarvester') && buttonEnabled('btnMakeHarvester') && getNumber('harvesterLevelDisplay') < 25000;        
+        return (productionWorking() || getNumber('harvesterLevelDisplay')==0) && elementExists('btnMakeHarvester') && buttonEnabled('btnMakeHarvester') && getNumber('harvesterLevelDisplay') < 25000
+        && (getNumber('harvesterLevelDisplay') < 250 || getNumber('factoryLevelDisplay') > 10)
+        && (getNumber('harvesterLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20)
+        ;        
     },
     priority: projectPriority.Lowest,
     run: () => {    
@@ -365,9 +399,12 @@ projectList.push({
 projectList.push({
     name: 'Make Wire Drone',
     canRun: () => {        
-        return elementExists('btnMakeWireDrone') && buttonEnabled('btnMakeWireDrone') && getNumber('wireDroneLevelDisplay') < 25000;        
+        return  (productionWorking() || getNumber('wireDroneLevelDisplay')==0) && elementExists('btnMakeWireDrone') && buttonEnabled('btnMakeWireDrone') && getNumber('wireDroneLevelDisplay') < 25000
+        && (getNumber('wireDroneLevelDisplay') < 250 || getNumber('factoryLevelDisplay') > 10)
+        && (getNumber('wireDroneLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20)
+        ;        
     },
-    priority: projectPriority.Lowest,
+    priority: projectPriority.Low,
     run: () => {    
         clickButton('btnMakeWireDrone');
     }
@@ -378,7 +415,7 @@ projectList.push({
     canRun: () => {        
         return elementExists('btnHarvesterx1000') && buttonEnabled('btnHarvesterx1000') && getNumber('harvesterLevelDisplay') < 24000;        
     },
-    priority: projectPriority.Low,
+    priority: projectPriority.Medium,
     run: () => {    
         clickButton('btnHarvesterx1000');
     }
@@ -388,7 +425,7 @@ projectList.push({
     canRun: () => {        
         return elementExists('btnWireDronex1000') && buttonEnabled('btnWireDronex1000') && getNumber('wireDroneLevelDisplay') < 24000;        
     },
-    priority: projectPriority.Low,
+    priority: projectPriority.Medium,
     run: () => {    
         clickButton('btnWireDronex1000');
     }
