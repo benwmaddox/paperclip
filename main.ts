@@ -132,6 +132,18 @@ projectList.push({
     }
 })
 
+projectList.push({
+    name: 'Wow. We really need to increase prices',
+    canRun: () => {
+        return elementExists('unsoldClips') && elementExists('clipmakerRate') && getNumber('unsoldClips') < getNumber('clipmakerRate') && getNumber('clipmakerRate') > 10000;
+    },
+    priority: projectPriority.Low,
+    run: () => {
+        clickButton('btnRaisePrice');
+    }
+})
+
+
 var lowerPriceTime : number = new Date().getTime() - 120000;
 projectList.push({
     name: 'Adjust price lower in early game',

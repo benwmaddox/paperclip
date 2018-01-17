@@ -123,6 +123,16 @@ projectList.push({
         clickButton('btnRaisePrice');
     }
 });
+projectList.push({
+    name: 'Wow. We really need to increase prices',
+    canRun: function () {
+        return elementExists('unsoldClips') && elementExists('clipmakerRate') && getNumber('unsoldClips') < getNumber('clipmakerRate') && getNumber('clipmakerRate') > 10000;
+    },
+    priority: projectPriority.Low,
+    run: function () {
+        clickButton('btnRaisePrice');
+    }
+});
 var lowerPriceTime = new Date().getTime() - 120000;
 projectList.push({
     name: 'Adjust price lower in early game',
