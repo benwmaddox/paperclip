@@ -1,7 +1,26 @@
+
+
+var positionIndicator = function(target : HTMLElement){
+    var element = <HTMLDivElement>document.getElementById('selectedIndicatorBorder');
+    if (element === null){
+        var item = document.createElement('div');        
+        item.id = "selectedIndicatorBorder";
+        item.style.border = "3px red dashed";
+        item.style.position = "absolute";
+        document.body.appendChild(item);
+        element = item;
+    }
+    element.style.left = (target.offsetLeft-2).toString() + "px";
+    element.style.top = (target.offsetTop-2).toString() + "px";
+    element.style.width = (target.offsetWidth).toString() + "px";
+    element.style.height = (target.offsetHeight).toString() + "px";
+    
+}
 function clickButton(elementId: string){    
     var element = document.getElementById(elementId);
     if (element){
         element.click();
+        positionIndicator(element);
     }            
 }
 function getNumber(elementId : string){
@@ -372,7 +391,7 @@ projectList.push({
         var yomi = getNumber('yomiDisplay');          
         var operation = getNumber('operations');    
         var trust = getNumber('trust');
-        return boostedCreativity === true && elementExists('investmentEngineUpgrade') && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && (yomi < operation / 2)  && getNumber('maxOps') === getNumber('operations');
+        return boostedCreativity === true && (elementExists('investmentEngineUpgrade') || elementExists('tournamentManagement')) && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && (yomi < operation / 2)  && getNumber('maxOps') === getNumber('operations');
     },
     priority: projectPriority.Low,
     run: () => {      
@@ -802,11 +821,13 @@ var runNextProject = function(){
     }
     
 }
-var automation = function(){
+
+var automation = function () {
     runNextProject();
-    setTimeout(automation,  1000)
-}
+    var timeout = Math.random()*15000 - 10000;
+    if (timeout < 200){
+        timeout = 200;
+    }
+    setTimeout(automation, );
+};
 automation();
-
-
-
