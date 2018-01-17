@@ -19,8 +19,8 @@ var positionIndicator = function(target : HTMLElement){
 function clickButton(elementId: string){    
     var element = document.getElementById(elementId);
     if (element){
-        element.click();
         positionIndicator(element);
+        element.click();
     }            
 }
 function getNumber(elementId : string){
@@ -824,10 +824,11 @@ var runNextProject = function(){
 
 var automation = function () {
     runNextProject();
-    var timeout = Math.random()*15000 - 10000;
-    if (timeout < 200){
-        timeout = 200;
-    }
-    setTimeout(automation, );
+    // var timeout = Math.random()*15000 - 10000;
+    // if (timeout < 200){
+    //     timeout = 200;
+    // }
+    var timeout = 1000;
+    setTimeout(automation, timeout);
 };
 automation();
