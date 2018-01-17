@@ -1,0 +1,4 @@
+# paperclip
+
+Just wanted to see what it would take to make a program that could beat the game at:
+http://decisionproblem.com/paperclips/index2.html
