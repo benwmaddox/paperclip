@@ -62,7 +62,7 @@ projectList.push({
     canRun: () => {
         var totalClips = getNumber('clips');
         var now : number = new Date().getTime();        
-        return totalClips < 5000  && buttonEnabled('btnMakePaperclip') && (now - initialClipLastRun > 10000);
+        return totalClips < 3000  && buttonEnabled('btnMakePaperclip') && (now - initialClipLastRun > 10000);
     },
     priority: projectPriority.Lowest,
     run: () => {
