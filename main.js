@@ -13,7 +13,19 @@ var positionIndicator = function (target) {
     element.style.top = (target.offsetTop - 2).toString() + "px";
     element.style.width = (target.offsetWidth).toString() + "px";
     element.style.height = (target.offsetHeight).toString() + "px";
+    element.style.opacity = "1.0";
 };
+var fadePositionIndicator = function () {
+    var element = document.getElementById('selectedIndicatorBorder');
+    if (element !== null) {
+        var opacity = Number(element.style.opacity);
+        if (opacity > 0) {
+            opacity -= 0.01;
+        }
+        element.style.opacity = opacity.toString();
+    }
+};
+setInterval(fadePositionIndicator, 15);
 function clickButton(elementId) {
     var element = document.getElementById(elementId);
     if (element) {
@@ -126,7 +138,7 @@ projectList.push({
 projectList.push({
     name: 'Wow. We really need to increase prices',
     canRun: function () {
-        return elementExists('unsoldClips') && elementExists('clipmakerRate') && getNumber('unsoldClips') < getNumber('clipmakerRate') && getNumber('clipmakerRate') > 10000;
+        return elementExists('unsoldClips') && elementExists('clipmakerRate') && getNumber('unsoldClips') < getNumber('clipmakerRate') && getNumber('wire') > 0 && getNumber('clipmakerRate') > 500;
     },
     priority: projectPriority.Low,
     run: function () {
