@@ -140,6 +140,10 @@ projectList.push({
     priority: projectPriority.Low,
     run: () => {
         clickButton('btnRaisePrice');
+        clickButton('btnRaisePrice');
+        clickButton('btnRaisePrice');
+        clickButton('btnRaisePrice');
+        clickButton('btnRaisePrice');
     }
 })
 
@@ -504,7 +508,7 @@ projectList.push({
 projectList.push({
     name: 'Make Wire Drone',
     canRun: () => {        
-        return  (productionWorking() || getNumber('wireDroneLevelDisplay')==0) && elementExists('btnMakeWireDrone') && buttonEnabled('btnMakeWireDrone') && getNumber('wireDroneLevelDisplay') < 26000
+        return  (productionWorking() || getNumber('wireDroneLevelDisplay')==0) && elementExists('btnMakeWireDrone') && buttonEnabled('btnMakeWireDrone') && getNumber('wireDroneLevelDisplay') < 26500
         && (getNumber('wireDroneLevelDisplay') < 250 || getNumber('factoryLevelDisplay') > 10)
         && (getNumber('wireDroneLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20)
         ;        
@@ -518,7 +522,7 @@ projectList.push({
 projectList.push({
     name: 'Make Harvester',
     canRun: () => {        
-        return (productionWorking() || getNumber('harvesterLevelDisplay')==0) && elementExists('btnMakeHarvester') && buttonEnabled('btnMakeHarvester') && getNumber('harvesterLevelDisplay') < 24000
+        return (productionWorking() || getNumber('harvesterLevelDisplay')==0) && elementExists('btnMakeHarvester') && buttonEnabled('btnMakeHarvester') && getNumber('harvesterLevelDisplay') < 23500
         && (getNumber('harvesterLevelDisplay') < 250 || getNumber('factoryLevelDisplay') > 10)
         && (getNumber('harvesterLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20)
         ;        
@@ -531,7 +535,7 @@ projectList.push({
 projectList.push({
     name: 'Make Harvester X 100',
     canRun: () => {        
-        return elementExists('btnHarvesterx100') && buttonEnabled('btnHarvesterx100') && getNumber('harvesterLevelDisplay') < 23900 && getNumber('harvesterLevelDisplay') > 300
+        return elementExists('btnHarvesterx100') && buttonEnabled('btnHarvesterx100') && getNumber('harvesterLevelDisplay') < 23400 && getNumber('harvesterLevelDisplay') > 300
         && (getNumber('harvesterLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20);
 
     },
@@ -557,7 +561,7 @@ projectList.push({
 projectList.push({
     name: 'Make Harvester X 1000',
     canRun: () => {         
-        return elementExists('btnHarvesterx1000') && buttonEnabled('btnHarvesterx1000') && getNumber('harvesterLevelDisplay') < 23000 && getNumber('harvesterLevelDisplay') > 1000
+        return elementExists('btnHarvesterx1000') && buttonEnabled('btnHarvesterx1000') && getNumber('harvesterLevelDisplay') < 22000 && getNumber('harvesterLevelDisplay') > 1000
         && (getNumber('harvesterLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20);        
     },
     priority: projectPriority.Medium,
