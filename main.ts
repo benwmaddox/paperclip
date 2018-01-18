@@ -23,11 +23,17 @@ var fadePositionIndicator= function(){
         var opacity = Number(element.style.opacity);
         if (opacity > 0){
             opacity -= 0.01;
+            element.style.opacity = opacity.toString();
         }
-        element.style.opacity = opacity.toString();
+        else{            
+            element.style.left = "-10px";
+            element.style.top = "-10px";
+            element.style.width = "0px";
+            element.style.height = "0px";
+        }
     }
 }
-setInterval(fadePositionIndicator, 15);
+setInterval(fadePositionIndicator, 20);
 
 function clickButton(elementId: string){    
     var element = document.getElementById(elementId);
