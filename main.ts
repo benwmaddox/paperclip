@@ -33,7 +33,7 @@ var fadePositionIndicator= function(){
         }
     }
 }
-setInterval(fadePositionIndicator, 20);
+setInterval(fadePositionIndicator, 15);
 
 function clickButton(elementId: string){    
     var element = document.getElementById(elementId);
@@ -81,7 +81,7 @@ projectList.push({
     canRun: () => {
         var totalClips = getNumber('clips');
         var now : number = new Date().getTime();        
-        return totalClips < 3000  && buttonEnabled('btnMakePaperclip') && (now - initialClipLastRun > 10000);
+        return totalClips < 3000 && getNumber('unsoldClips') < 500  && buttonEnabled('btnMakePaperclip') && (now - initialClipLastRun > 10000) && getNumber('clipmakerLevel2') < 5;
     },
     priority: projectPriority.Lowest,
     run: () => {
@@ -214,12 +214,16 @@ projectList.push({
 })
 
 var boostedCreativity : boolean = true;
-var boostedCreativityTime : number = new Date().getTime() - 90000;
+var boostedCreativityTime : number = new Date().getTime() - 570000;
 projectList.push({
     name: 'Force minimum creativity for harder to get projects',
     canRun: () => {        
-        
-        return elementExists('creativity') && elementExists('processors')  && getNumber('processors') >= 5 && boostedCreativity == true && getNumber('creativity') < getNumber('processors') * 40 && (new Date().getTime() - boostedCreativityTime > 120000);
+        var lowLevelCheck = elementExists('creativity') && elementExists('processors')  && getNumber('processors') >= 5 && boostedCreativity == true && getNumber('creativity') < getNumber('processors') * 50 && (new Date().getTime() - boostedCreativityTime > 600000);
+        if (lowLevelCheck){
+            return true;
+        }
+        var rushLater = getNumber('processors') >= 100 && getNumber('creativity') < 125000 && boostedCreativity == true;
+        return rushLater;
     },
     priority: projectPriority.Highest,
     run: () => {
@@ -231,7 +235,10 @@ projectList.push({
     name: 'Minimum creativity goal met',
     canRun: () => {        
         // Force creativity use too
-        return boostedCreativity == false && ((getNumber('creativity') > getNumber('processors') * 40) || !elementExists('processors'));
+        
+        var lowLevelMet = boostedCreativity == false && ((getNumber('creativity') > getNumber('processors') * 50) || !elementExists('processors'));
+        var rushLaterMet = getNumber('processors') < 100 || getNumber('creativity') > 125000;
+        return lowLevelMet && rushLaterMet;
     },
     priority: projectPriority.Highest,
     run: () => {
@@ -240,14 +247,20 @@ projectList.push({
     }
 });
 
+var isEndGameProject = function(name: string){
+    return name === "Reject " || name === "Accept ";
+}
 // run projects
 projectList.push({
     name: 'Run projects',
     canRun: () => {
         var projectButtons  =  document.getElementsByClassName('projectButton');
         for (var i = 0; i < projectButtons.length; i++){
-            if (elementExists(projectButtons[i].id) && buttonEnabled(projectButtons[i].id) && (getNumber('processors') < 5 || boostedCreativity) ){
-                return true;
+            if (elementExists(projectButtons[i].id) && buttonEnabled(projectButtons[i].id) && (getNumber('processors') < 5 || boostedCreativity) ){                               
+                var textContent = projectButtons[i].childNodes[0].textContent || "";
+                if (!isEndGameProject(textContent)){
+                    return true;
+                }
             }
         }
         return false;
@@ -256,8 +269,8 @@ projectList.push({
     run: () => {        
         var projectButtons  =  document.getElementsByClassName('projectButton');
         for (var i = 0; i < projectButtons.length; i++){
-            if (buttonEnabled(projectButtons[i].id)){
-                var textContent = projectButtons[i].childNodes[0].textContent;
+            var textContent = projectButtons[i].childNodes[0].textContent || "";
+            if (buttonEnabled(projectButtons[i].id) && !isEndGameProject(textContent)){
                 setTimeout(function(){
                     console.log(textContent);
                 }, 10)
@@ -311,7 +324,7 @@ projectList.push({
         var processors  = getNumber('processors');
         var memory = getNumber('memory') ;
         if ((processors < 5 || 
-            (memory < 150 && processors * 3 < memory) ||
+            (memory < 150 && processors * 4 < memory) ||
             (memory > 150 && processors  < memory) ||
              memory > 300)) {
             clickButton('btnAddProc');
@@ -384,7 +397,17 @@ projectList.push({
     priority: projectPriority.High,
     run: () => {    
         var slider = (<HTMLInputElement>document.getElementById('slider'));
-        var random = ((Math.random() * 0.5) * Number(slider.max)) + Number(slider.max)*0.25;
+        // A little variety permitted. Random within the range of half the slider. 
+        var random = ((Math.random() * 0.5) * Number(slider.max));
+        if (getNumber('memory') < 100){
+            // Push for some thinking in this period
+            random +=  Number(slider.max)*0.25;
+        }
+        else if (getNumber('memory') < 300){
+            // Push for more thinking in this period
+            random +=  Number(slider.max)*0.5;
+        }      
+
         slider.value = random.toString();
         
         lastSliderTime =  (new Date()).getTime();
@@ -426,7 +449,7 @@ projectList.push({
         var yomi = getNumber('yomiDisplay');          
         var operation = getNumber('operations');    
         var trust = getNumber('trust');
-        return boostedCreativity === true && (elementExists('investmentEngineUpgrade') || elementExists('tournamentManagement')) && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && (yomi < operation / 2)  && getNumber('maxOps') === getNumber('operations');
+        return boostedCreativity === true && (elementExists('investmentEngineUpgrade') || elementExists('tournamentManagement')) && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament')  && getNumber('maxOps') === getNumber('operations');
     },
     priority: projectPriority.Low,
     run: () => {      
@@ -516,7 +539,7 @@ var productionWorking = function() {
 projectList.push({
     name: 'Make Factory',
     canRun: () => {        
-        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 200;        
+        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 185;        
     },
     priority: projectPriority.Medium,
     run: () => {    
@@ -720,17 +743,17 @@ projectList.push({
                 remaining-=2;
             }
         }
-        else if (random > 0.7){            
-            setTimeout(() => {
-                console.log('Where no man has gone before');
-            }, 100);
+        // else if (random > 0.7){            
+        //     setTimeout(() => {
+        //         console.log('Where no man has gone before');
+        //     }, 100);
             
-            while (remaining > 10 && remaining > halfRemaining){
-                speed++;
-                exploration++;
-                remaining-=2;
-            }
-        }
+        //     while (remaining > 10 && remaining > halfRemaining){
+        //         speed++;
+        //         exploration++;
+        //         remaining-=2;
+        //     }
+        // }
         else if (random > 0.6){            
             setTimeout(() => {
                 console.log('Start with equality');
