@@ -224,7 +224,7 @@ projectList.push({
         if (lowLevelCheck){
             return true;
         }
-        var rushLater = getNumber('processors') >= 100 && getNumber('creativity') < 125000 && boostedCreativity == true;
+        var rushLater = elementExists('btnIncreaseProbeTrust') && getNumber('processors') >= 150 && getNumber('creativity') < 125000 && boostedCreativity == true;
         return rushLater;
     },
     priority: projectPriority.Highest,
@@ -239,7 +239,7 @@ projectList.push({
         // Force creativity use too
         
         var lowLevelMet = boostedCreativity == false && ((getNumber('creativity') > getNumber('processors') * 50) || !elementExists('processors'));
-        var rushLaterMet = getNumber('processors') < 100 || getNumber('creativity') > 125000;
+        var rushLaterMet = getNumber('processors') < 150 || getNumber('creativity') > 125000;
         return lowLevelMet && rushLaterMet;
     },
     priority: projectPriority.Highest,
@@ -254,6 +254,7 @@ var isEndGameProject = function(name: string){
 }
 // run projects
 var buttonsThatHoldUpOtherProjects : string[] = [
+    "projectButton134", // Glory
     "projectButton11", // New Slogan
     "projectButton12", // Catchy Jingle
     "projectButton20", //Strategic Modeling
@@ -498,12 +499,12 @@ projectList.push({
 })
 
 projectList.push({
-    name: 'Start off the first tournament',
+    name: 'Early Tournament Push',
     canRun: () => {
         var yomi = getNumber('yomiDisplay');          
         var operation = getNumber('operations');    
         var trust = getNumber('trust');
-        return elementExists('btnNewTournament') && buttonEnabled('btnNewTournament')  && getNumber('yomiDisplay') === 0;
+        return elementExists('btnNewTournament') && buttonEnabled('btnNewTournament')  && getNumber('yomiDisplay') <= 3000;
     },
     priority: projectPriority.Low,
     run: () => {      
@@ -522,7 +523,7 @@ projectList.push({
         var yomi = getNumber('yomiDisplay');          
         var operation = getNumber('operations');    
         var trust = getNumber('trust');
-        return boostedCreativity === true && (elementExists('investmentEngineUpgrade') || elementExists('tournamentManagement')) && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament')  && getNumber('maxOps') === getNumber('operations');
+        return boostedCreativity === true && (elementExists('investmentEngineUpgrade') || elementExists('tournamentManagement')) && elementExists('btnNewTournament') && buttonEnabled('btnNewTournament')  && getNumber('maxOps') <= getNumber('operations');
     },
     priority: projectPriority.Low,
     run: () => {      
@@ -785,6 +786,9 @@ projectList.push({
             return false;
         }
         var remaining = getNumber('probeTrustDisplay');
+        if (remaining < 3){
+            return false;
+        }
         //probeCombatDisplay
         var rep = 0;
         var haz = 0;        
