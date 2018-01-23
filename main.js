@@ -32,6 +32,9 @@ var fadePositionIndicator = function () {
     }
 };
 setInterval(fadePositionIndicator, 15);
+function getById(elementId) {
+    return document.getElementById(elementId);
+}
 function clickButton(elementId) {
     var element = document.getElementById(elementId);
     if (element) {
@@ -234,30 +237,66 @@ var isEndGameProject = function (name) {
     return name === "Reject " || name === "Accept ";
 };
 // run projects
+var buttonsThatHoldUpOtherProjects = [
+    "projectButton20",
+    //'projectButton51', // Photonic chip    
+    "projectButton38",
+    "projectButton102",
+    'projectButton27' // Coherent Extrapolated Volition
+];
+var getProjectsThatCouldBeRun = function () {
+    var enabledButtons = [];
+    var disabledButtons = [];
+    var projectButtons = document.getElementsByClassName('projectButton');
+    for (var i = 0; i < projectButtons.length; i++) {
+        if (elementExists(projectButtons[i].id) && buttonEnabled(projectButtons[i].id)) {
+            enabledButtons.push(projectButtons[i].id);
+        }
+        else if (elementExists(projectButtons[i].id)) {
+            disabledButtons.push(projectButtons[i].id);
+        }
+        var textContent = projectButtons[i].childNodes[0].textContent || "";
+        if (isEndGameProject(textContent)) {
+            return {
+                enabled: [],
+                disabled: []
+            };
+        }
+        ;
+    }
+    var holdUpEnabledProjects = enabledButtons.filter(function (x) { return buttonsThatHoldUpOtherProjects.indexOf(x) !== -1; });
+    var normalEnabled = enabledButtons.filter(function (x) { return buttonsThatHoldUpOtherProjects.indexOf(x) === -1; });
+    var holdUpDisabledProjects = disabledButtons.filter(function (x) { return buttonsThatHoldUpOtherProjects.indexOf(x) !== -1; });
+    return {
+        enabled: holdUpEnabledProjects.length == 0 && holdUpDisabledProjects.length == 0 ? enabledButtons : holdUpEnabledProjects,
+        disabled: disabledButtons
+    };
+};
 projectList.push({
     name: 'Run projects',
     canRun: function () {
-        var projectButtons = document.getElementsByClassName('projectButton');
-        for (var i = 0; i < projectButtons.length; i++) {
-            if (elementExists(projectButtons[i].id) && buttonEnabled(projectButtons[i].id) && (getNumber('processors') < 5 || boostedCreativity)) {
-                var textContent = projectButtons[i].childNodes[0].textContent || "";
-                if (!isEndGameProject(textContent)) {
-                    return true;
-                }
-            }
+        // var projectButtons  =  document.getElementsByClassName('projectButton');
+        if (getNumber('processors') > 5 && boostedCreativity == false) {
+            return false;
         }
-        return false;
+        var buttons = getProjectsThatCouldBeRun();
+        return buttons.enabled.length > 0;
     },
     priority: projectPriority.Highest,
     run: function () {
-        var projectButtons = document.getElementsByClassName('projectButton');
-        for (var i = 0; i < projectButtons.length; i++) {
-            var textContent = projectButtons[i].childNodes[0].textContent || "";
-            if (buttonEnabled(projectButtons[i].id) && !isEndGameProject(textContent)) {
+        // var projectButtons  =  document.getElementsByClassName('projectButton');
+        var buttonIds = getProjectsThatCouldBeRun();
+        for (var i = 0; i < buttonIds.enabled.length; i++) {
+            var id = buttonIds.enabled[i];
+            var element = getById(id);
+            if (element === null)
+                continue;
+            var textContent = element.childNodes[0].textContent || "";
+            if (buttonEnabled(id) && !isEndGameProject(textContent)) {
                 setTimeout(function () {
                     console.log(textContent);
                 }, 10);
-                clickButton(projectButtons[i].id);
+                clickButton(id);
                 return;
             }
         }
@@ -298,17 +337,26 @@ projectList.push({
     },
     priority: projectPriority.Medium,
     run: function () {
-        var processors = getNumber('processors');
-        var memory = getNumber('memory');
-        if ((processors < 5 ||
-            (memory < 150 && processors * 4 < memory) ||
-            (memory > 150 && processors < memory) ||
-            memory > 300)) {
-            clickButton('btnAddProc');
-        }
-        else {
-            clickButton('btnAddMem');
-        }
+        var upgradeFunction = function () {
+            var processors = getNumber('processors');
+            var memory = getNumber('memory');
+            if ((processors < 5 ||
+                (memory < 90 && processors * 4 < memory) ||
+                (memory > 100 && memory < 120 && processors * 0.75 < memory) ||
+                (memory >= 150 && processors < memory) ||
+                memory > 300)) {
+                clickButton('btnAddProc');
+            }
+            else {
+                clickButton('btnAddMem');
+            }
+            if (buttonEnabled('btnAddProc') || buttonEnabled('btnAddMem')) {
+                setTimeout(function () {
+                    upgradeFunction();
+                }, (100));
+            }
+        };
+        upgradeFunction();
     }
 });
 projectList.push({
@@ -446,9 +494,21 @@ projectList.push({
     canRun: function () {
         var consumption = getNumber('powerConsumptionRate');
         var production = getNumber('powerProductionRate');
-        return elementExists('btnMakeFarm') && consumption * 1.2 >= production && buttonEnabled('btnMakeFarm');
+        return elementExists('btnMakeFarm') && consumption * 1.2 > production && buttonEnabled('btnMakeFarm') && getNumber('farmLevel') < 1700;
     },
-    priority: projectPriority.Low,
+    priority: projectPriority.Lowest,
+    run: function () {
+        clickButton('btnMakeFarm');
+    }
+});
+projectList.push({
+    name: 'Make Solar (already behind)',
+    canRun: function () {
+        var consumption = getNumber('powerConsumptionRate');
+        var production = getNumber('powerProductionRate');
+        return elementExists('btnMakeFarm') && consumption >= production && buttonEnabled('btnMakeFarm');
+    },
+    priority: projectPriority.High,
     run: function () {
         clickButton('btnMakeFarm');
     }
@@ -458,9 +518,9 @@ projectList.push({
     canRun: function () {
         var consumption = getNumber('powerConsumptionRate');
         var production = getNumber('powerProductionRate');
-        return elementExists('btnFarmx100') && consumption * 1.2 >= production && buttonEnabled('btnFarmx100');
+        return elementExists('btnFarmx100') && consumption * 1.2 >= production && buttonEnabled('btnFarmx100') && getNumber('farmLevel') < 1600;
     },
-    priority: projectPriority.Medium,
+    priority: projectPriority.Low,
     run: function () {
         clickButton('btnFarmx100');
     }
@@ -470,7 +530,7 @@ projectList.push({
     canRun: function () {
         return elementExists('btnMakeBattery') && buttonEnabled('btnMakeBattery') && getNumber('maxStorage') < 10000000 && getNumber('maxStorage') == getNumber('storedPower');
     },
-    priority: projectPriority.Low,
+    priority: projectPriority.Lowest,
     run: function () {
         clickButton('btnMakeBattery');
     }
@@ -480,7 +540,7 @@ projectList.push({
     canRun: function () {
         return elementExists('btnBatteryx10') && buttonEnabled('btnBatteryx10') && getNumber('maxStorage') < 9900000 && getNumber('maxStorage') == getNumber('storedPower');
     },
-    priority: projectPriority.Medium,
+    priority: projectPriority.Low,
     run: function () {
         clickButton('btnBatteryx10');
     }
@@ -490,7 +550,7 @@ projectList.push({
     canRun: function () {
         return elementExists('btnBatteryx100') && buttonEnabled('btnBatteryx100') && getNumber('maxStorage') < 9000000 && getNumber('maxStorage') == getNumber('storedPower');
     },
-    priority: projectPriority.High,
+    priority: projectPriority.Medium,
     run: function () {
         clickButton('btnBatteryx100');
     }
@@ -501,7 +561,7 @@ var productionWorking = function () {
         getNumber('factoryLevelDisplay') > 0 &&
         getNumber('farmLevel') > 0 &&
         getNumber('batteryLevel') > 0 &&
-        (getNumber('powerConsumptionRate') * 1.1 <= getNumber('powerProductionRate'));
+        (getNumber('powerConsumptionRate') <= getNumber('powerProductionRate'));
 };
 projectList.push({
     name: 'Make Factory',
@@ -540,7 +600,7 @@ projectList.push({
 projectList.push({
     name: 'Make Harvester X 100',
     canRun: function () {
-        return elementExists('btnHarvesterx100') && buttonEnabled('btnHarvesterx100') && getNumber('harvesterLevelDisplay') < 23400 && getNumber('harvesterLevelDisplay') > 300
+        return elementExists('btnHarvesterx100') && buttonEnabled('btnHarvesterx100') && getNumber('harvesterLevelDisplay') < 23400 && getNumber('harvesterLevelDisplay') > 300 && getNumber('wireDroneLevelDisplay') > 300
             && (getNumber('harvesterLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20);
     },
     priority: projectPriority.Low,
@@ -551,7 +611,7 @@ projectList.push({
 projectList.push({
     name: 'Make Wire Drone X 100',
     canRun: function () {
-        return elementExists('btnWireDronex100') && buttonEnabled('btnWireDronex100') && getNumber('wireDroneLevelDisplay') < 25900 && getNumber('wireDroneLevelDisplay') > 300
+        return elementExists('btnWireDronex100') && buttonEnabled('btnWireDronex100') && getNumber('wireDroneLevelDisplay') < 25900 && getNumber('harvesterLevelDisplay') > 300 && getNumber('wireDroneLevelDisplay') > 300
             && (getNumber('wireDroneLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20);
     },
     priority: projectPriority.Low,
@@ -648,16 +708,16 @@ projectList.push({
         }
         var remaining = getNumber('probeTrustDisplay');
         //probeCombatDisplay
-        for (var i = 0; i < remaining; i++) {
-            clickButton('btnLowerProbeSpeed');
-            clickButton('btnLowerProbeNav');
-            clickButton('btnLowerProbeRep');
-            clickButton('btnLowerProbeHaz');
-            clickButton('btnLowerProbeFac');
-            clickButton('btnLowerProbeHarv');
-            clickButton('btnLowerProbeWire');
-            clickButton('btnLowerProbeCombat');
-        }
+        // for (var i = 0; i < remaining; i++) {
+        //     clickButton('btnLowerProbeSpeed');
+        //     clickButton('btnLowerProbeNav');
+        //     clickButton('btnLowerProbeRep');
+        //     clickButton('btnLowerProbeHaz');
+        //     clickButton('btnLowerProbeFac');
+        //     clickButton('btnLowerProbeHarv');
+        //     clickButton('btnLowerProbeWire');
+        //     clickButton('btnLowerProbeCombat');
+        // }
         var rep = 0;
         var haz = 0;
         var combat = 0;
@@ -688,11 +748,11 @@ projectList.push({
                 remaining -= 2;
             }
         }
-        else if (random > 0.6) {
+        else if (random > 0.7) {
             setTimeout(function () {
                 console.log('Start with equality');
             }, 100);
-            while (remaining > 10 && remaining > halfRemaining) {
+            if (remaining > 10) {
                 factory++;
                 nanoWire++;
                 acquiredMatter++;
@@ -760,32 +820,61 @@ projectList.push({
                 haz++;
             }
         }
-        setTimeout(function () {
-            while (factory-- > 0) {
-                clickButton('btnRaiseProbeFac');
-            }
-            while (rep-- > 0) {
-                clickButton('btnRaiseProbeRep');
-            }
-            while (haz-- > 0) {
-                clickButton('btnRaiseProbeHaz');
-            }
-            while (nanoWire-- > 0) {
-                clickButton('btnRaiseProbeWire');
-            }
-            while (acquiredMatter-- > 0) {
-                clickButton('btnRaiseProbeHarv');
-            }
-            while (speed-- > 0) {
-                clickButton('btnRaiseProbeSpeed');
-            }
-            while (exploration-- > 0) {
-                clickButton('btnRaiseProbeNav');
-            }
-            while (combat-- > 0) {
-                clickButton('btnRaiseProbeCombat');
-            }
-        }, 100);
+        // setTimeout(function () {
+        //     while (factory-- > 0) {
+        //         clickButton('btnRaiseProbeFac');
+        //     }
+        //     while (rep-- > 0) {
+        //         clickButton('btnRaiseProbeRep');
+        //     }
+        //     while (haz-- > 0) {
+        //         clickButton('btnRaiseProbeHaz');
+        //     }
+        //     while (nanoWire-- > 0) {
+        //         clickButton('btnRaiseProbeWire');
+        //     }
+        //     while (acquiredMatter-- > 0) {
+        //         clickButton('btnRaiseProbeHarv');
+        //     }
+        //     while (speed-- > 0) {
+        //         clickButton('btnRaiseProbeSpeed');
+        //     }
+        //     while (exploration-- > 0) {
+        //         clickButton('btnRaiseProbeNav');
+        //     }
+        //     while (combat-- > 0) {
+        //         clickButton('btnRaiseProbeCombat');
+        //     }
+        // }, 100);
+        var changeProbes = function () {
+            var delay = 50;
+            var changeIt = function (goal, actualElementId, lowerButtonId, raiseButtonId) {
+                var buttonToClick = null;
+                if (goal > getNumber(actualElementId)) {
+                    buttonToClick = raiseButtonId;
+                }
+                else if (goal < getNumber(actualElementId)) {
+                    buttonToClick = lowerButtonId;
+                }
+                if (buttonToClick != null) {
+                    clickButton(buttonToClick);
+                    setTimeout(function () {
+                        changeIt(goal, actualElementId, lowerButtonId, raiseButtonId);
+                    }, (delay += 50));
+                }
+                return buttonToClick;
+            };
+            setTimeout(function () { changeIt(speed, "probeSpeedDisplay", "btnLowerProbeSpeed", "btnRaiseProbeSpeed"); }, delay += 25);
+            setTimeout(function () { changeIt(exploration, "probeNavDisplay", "btnLowerProbeNav", "btnRaiseProbeNav"); }, delay += 25);
+            setTimeout(function () { changeIt(rep, "probeRepDisplay", "btnLowerProbeRep", "btnRaiseProbeRep"); }, delay += 25);
+            setTimeout(function () { changeIt(haz, "probeHazDisplay", "btnLowerProbeHaz", "btnRaiseProbeHaz"); }, delay += 25);
+            setTimeout(function () { changeIt(factory, "probeFacDisplay", "btnLowerProbeFac", "btnRaiseProbeFac"); }, delay += 25);
+            setTimeout(function () { changeIt(acquiredMatter, "probeHarvDisplay", "btnLowerProbeHarv", "btnRaiseProbeHarv"); }, delay += 25);
+            setTimeout(function () { changeIt(nanoWire, "probeWireDisplay", "btnLowerProbeWire", "btnRaiseProbeWire"); }, delay += 25);
+            setTimeout(function () { changeIt(combat, "probeCombatDisplay", "btnLowerProbeCombat", "btnRaiseProbeCombat"); }, delay += 25);
+        };
+        // setTimeout(changeProbes, 100);
+        changeProbes();
         rebalanceProbeLastRun = new Date().getTime();
     }
 });
