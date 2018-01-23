@@ -238,6 +238,8 @@ var isEndGameProject = function (name) {
 };
 // run projects
 var buttonsThatHoldUpOtherProjects = [
+    "projectButton11",
+    "projectButton12",
     "projectButton20",
     //'projectButton51', // Photonic chip    
     "projectButton38",
@@ -459,6 +461,23 @@ projectList.push({
     priority: projectPriority.Medium,
     run: function () {
         document.getElementById('stratPicker').selectedIndex = document.getElementById('stratPicker').length - 1;
+    }
+});
+projectList.push({
+    name: 'Start off the first tournament',
+    canRun: function () {
+        var yomi = getNumber('yomiDisplay');
+        var operation = getNumber('operations');
+        var trust = getNumber('trust');
+        return elementExists('btnNewTournament') && buttonEnabled('btnNewTournament') && getNumber('yomiDisplay') === 0;
+    },
+    priority: projectPriority.Low,
+    run: function () {
+        document.getElementById('stratPicker').selectedIndex = document.getElementById('stratPicker').length - 1;
+        clickButton('btnNewTournament');
+        setTimeout(function () {
+            clickButton('btnRunTournament');
+        }, 500);
     }
 });
 projectList.push({
@@ -708,16 +727,6 @@ projectList.push({
         }
         var remaining = getNumber('probeTrustDisplay');
         //probeCombatDisplay
-        // for (var i = 0; i < remaining; i++) {
-        //     clickButton('btnLowerProbeSpeed');
-        //     clickButton('btnLowerProbeNav');
-        //     clickButton('btnLowerProbeRep');
-        //     clickButton('btnLowerProbeHaz');
-        //     clickButton('btnLowerProbeFac');
-        //     clickButton('btnLowerProbeHarv');
-        //     clickButton('btnLowerProbeWire');
-        //     clickButton('btnLowerProbeCombat');
-        // }
         var rep = 0;
         var haz = 0;
         var combat = 0;
@@ -820,32 +829,6 @@ projectList.push({
                 haz++;
             }
         }
-        // setTimeout(function () {
-        //     while (factory-- > 0) {
-        //         clickButton('btnRaiseProbeFac');
-        //     }
-        //     while (rep-- > 0) {
-        //         clickButton('btnRaiseProbeRep');
-        //     }
-        //     while (haz-- > 0) {
-        //         clickButton('btnRaiseProbeHaz');
-        //     }
-        //     while (nanoWire-- > 0) {
-        //         clickButton('btnRaiseProbeWire');
-        //     }
-        //     while (acquiredMatter-- > 0) {
-        //         clickButton('btnRaiseProbeHarv');
-        //     }
-        //     while (speed-- > 0) {
-        //         clickButton('btnRaiseProbeSpeed');
-        //     }
-        //     while (exploration-- > 0) {
-        //         clickButton('btnRaiseProbeNav');
-        //     }
-        //     while (combat-- > 0) {
-        //         clickButton('btnRaiseProbeCombat');
-        //     }
-        // }, 100);
         var changeProbes = function () {
             var delay = 50;
             var changeIt = function (goal, actualElementId, lowerButtonId, raiseButtonId) {
@@ -864,14 +847,14 @@ projectList.push({
                 }
                 return buttonToClick;
             };
-            setTimeout(function () { changeIt(speed, "probeSpeedDisplay", "btnLowerProbeSpeed", "btnRaiseProbeSpeed"); }, delay += 25);
-            setTimeout(function () { changeIt(exploration, "probeNavDisplay", "btnLowerProbeNav", "btnRaiseProbeNav"); }, delay += 25);
-            setTimeout(function () { changeIt(rep, "probeRepDisplay", "btnLowerProbeRep", "btnRaiseProbeRep"); }, delay += 25);
-            setTimeout(function () { changeIt(haz, "probeHazDisplay", "btnLowerProbeHaz", "btnRaiseProbeHaz"); }, delay += 25);
-            setTimeout(function () { changeIt(factory, "probeFacDisplay", "btnLowerProbeFac", "btnRaiseProbeFac"); }, delay += 25);
-            setTimeout(function () { changeIt(acquiredMatter, "probeHarvDisplay", "btnLowerProbeHarv", "btnRaiseProbeHarv"); }, delay += 25);
-            setTimeout(function () { changeIt(nanoWire, "probeWireDisplay", "btnLowerProbeWire", "btnRaiseProbeWire"); }, delay += 25);
-            setTimeout(function () { changeIt(combat, "probeCombatDisplay", "btnLowerProbeCombat", "btnRaiseProbeCombat"); }, delay += 25);
+            changeIt(speed, "probeSpeedDisplay", "btnLowerProbeSpeed", "btnRaiseProbeSpeed");
+            changeIt(exploration, "probeNavDisplay", "btnLowerProbeNav", "btnRaiseProbeNav");
+            changeIt(rep, "probeRepDisplay", "btnLowerProbeRep", "btnRaiseProbeRep");
+            changeIt(haz, "probeHazDisplay", "btnLowerProbeHaz", "btnRaiseProbeHaz");
+            changeIt(factory, "probeFacDisplay", "btnLowerProbeFac", "btnRaiseProbeFac");
+            changeIt(acquiredMatter, "probeHarvDisplay", "btnLowerProbeHarv", "btnRaiseProbeHarv");
+            changeIt(nanoWire, "probeWireDisplay", "btnLowerProbeWire", "btnRaiseProbeWire");
+            changeIt(combat, "probeCombatDisplay", "btnLowerProbeCombat", "btnRaiseProbeCombat");
         };
         // setTimeout(changeProbes, 100);
         changeProbes();
@@ -898,11 +881,7 @@ var runNextProject = function () {
 };
 var automation = function () {
     runNextProject();
-    // var timeout = Math.random()*15000 - 10000;
-    // if (timeout < 200){
-    //     timeout = 200;
-    // }
-    var timeout = 1000;
-    setTimeout(automation, timeout);
+    var automationTimeout = Math.random() > 0.99 ? 15000 : 1000;
+    setTimeout(automation, automationTimeout);
 };
 automation();
