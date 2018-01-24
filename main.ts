@@ -734,7 +734,7 @@ projectList.push({
     canRun: () => {
         return elementExists('btnIncreaseProbeTrust') && buttonEnabled('btnIncreaseProbeTrust');
     },
-    priority: projectPriority.Lowest,
+    priority: projectPriority.High,
     run: () => {    
         clickButton('btnIncreaseProbeTrust');
     }
@@ -778,6 +778,10 @@ var rebalanceProbeLastRun : number = new Date().getTime() - 60000;
 projectList.push({
     name: 'Rebalance Probes',
     canRun: function () {
+        
+        if (getNumber('probeTrustDisplay') < 3){
+            return false;
+        }
         return elementExists('probeTrustUsedDisplay') && (new Date().getTime() - rebalanceProbeLastRun > 15000);
     },
     priority: projectPriority.Medium,
@@ -786,9 +790,6 @@ projectList.push({
             return false;
         }
         var remaining = getNumber('probeTrustDisplay');
-        if (remaining < 3){
-            return false;
-        }
         //probeCombatDisplay
         var rep = 0;
         var haz = 0;        
