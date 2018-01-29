@@ -233,6 +233,22 @@ projectList.push({
         boostedCreativityTime = new Date().getTime();
     }
 });
+
+projectList.push({
+    name: 'Creativity Goal started, so move slider to right',
+    canRun: () => {        
+        var slider = (<HTMLInputElement>document.getElementById('slider'));
+        
+        return boostedCreativity == false && slider.value < slider.max;
+    },
+    priority: projectPriority.Highest,
+    run: () => {
+        var slider = (<HTMLInputElement>document.getElementById('slider'));
+        slider.value = slider.max;
+    }
+});
+
+
 projectList.push({
     name: 'Minimum creativity goal met',
     canRun: () => {        
@@ -259,9 +275,11 @@ var buttonsThatHoldUpOtherProjects : string[] = [
     "projectButton12", // Catchy Jingle
     "projectButton20", //Strategic Modeling
     //'projectButton51', // Photonic chip    
+    "projectButton30", // Global Warming
+    "projectButton29", // World Peace
     "projectButton38", // Full Monopoly
-    "projectButton102", // Self-correcting Supply Chain
-    'projectButton27' // Coherent Extrapolated Volition
+    "projectButton102" // Self-correcting Supply Chain
+    // 'projectButton27' // Coherent Extrapolated Volition
     ];
 var getProjectsThatCouldBeRun = function() : {enabled : string[], disabled: string[]} {
 
@@ -504,7 +522,7 @@ projectList.push({
         var yomi = getNumber('yomiDisplay');          
         var operation = getNumber('operations');    
         var trust = getNumber('trust');
-        return elementExists('btnNewTournament') && buttonEnabled('btnNewTournament')  && getNumber('yomiDisplay') <= 3000;
+        return elementExists('btnNewTournament') && buttonEnabled('btnNewTournament')  && getNumber('yomiDisplay') <= 7000;
     },
     priority: projectPriority.Low,
     run: () => {      
@@ -625,7 +643,7 @@ var productionWorking = function() {
 projectList.push({
     name: 'Make Factory',
     canRun: () => {        
-        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 185;        
+        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175;        
     },
     priority: projectPriority.Medium,
     run: () => {    
@@ -734,7 +752,7 @@ projectList.push({
     canRun: () => {
         return elementExists('btnIncreaseProbeTrust') && buttonEnabled('btnIncreaseProbeTrust');
     },
-    priority: projectPriority.High,
+    priority: projectPriority.Highest,
     run: () => {    
         clickButton('btnIncreaseProbeTrust');
     }
@@ -782,7 +800,7 @@ projectList.push({
         if (getNumber('probeTrustDisplay') < 3){
             return false;
         }
-        return elementExists('probeTrustUsedDisplay') && (new Date().getTime() - rebalanceProbeLastRun > 15000);
+        return elementExists('probeTrustUsedDisplay') && (new Date().getTime() - rebalanceProbeLastRun > 30000);
     },
     priority: projectPriority.Medium,
     run: function () {
@@ -807,7 +825,7 @@ projectList.push({
                 console.log('Combat madness');
             }, 100);
             
-            while (remaining > 14 && remaining > halfRemaining){
+            while (remaining > 10 && remaining > halfRemaining){
                 combat++;
                 remaining--;
             }
@@ -816,7 +834,7 @@ projectList.push({
             setTimeout(() => {
                 console.log('Replicate like crazy');
             }, 100);
-            while (remaining > 6 && remaining > halfRemaining){
+            while (remaining > 4 && remaining > halfRemaining){
                 rep++;
                 haz++;
                 remaining-=2;
@@ -913,7 +931,7 @@ projectList.push({
                     clickButton(buttonToClick);
                     setTimeout(() => {             
                         changeIt(goal, actualElementId, lowerButtonId, raiseButtonId);
-                    }, (delay+=50));
+                    }, (delay+=15));
                 }
                 return buttonToClick;
             }
@@ -928,7 +946,6 @@ projectList.push({
             
             
         };
-        // setTimeout(changeProbes, 100);
         changeProbes();
 
         rebalanceProbeLastRun = new Date().getTime();
