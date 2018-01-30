@@ -4,7 +4,7 @@ class Phase1State {
 }
 
 class Phase2State{
-    public memory : number = getNumber('processors');
+    public memory : number = getNumber('memory');
 }
 
 class Phase3State {
@@ -322,8 +322,13 @@ projectList.push({
         // Force creativity use too
           
         var lowLevelMet = boostedCreativity == false && ((getNumber('creativity') > getNumber('processors') * 50) || !elementExists('processors'));
-        if ( boostedCreativity == false && state.number === 2 && state.phase2.memory < 100) {
-            return false;
+        if (state.number === 2){            
+            if ( boostedCreativity == false && state.number === 2 && state.phase2.memory < 100) {
+                return false;
+            }
+            else{
+                return true;
+            }
         }
         var rushLaterMet = getNumber('processors') < 150 || getNumber('creativity') > 125000;
         return lowLevelMet && rushLaterMet;

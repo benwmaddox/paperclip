@@ -8,7 +8,7 @@ var Phase1State = (function () {
 }());
 var Phase2State = (function () {
     function Phase2State() {
-        this.memory = getNumber('processors');
+        this.memory = getNumber('memory');
     }
     return Phase2State;
 }());
@@ -307,8 +307,13 @@ projectList.push({
     canRun: function () {
         // Force creativity use too
         var lowLevelMet = boostedCreativity == false && ((getNumber('creativity') > getNumber('processors') * 50) || !elementExists('processors'));
-        if (boostedCreativity == false && state.number === 2 && state.phase2.memory < 100) {
-            return false;
+        if (state.number === 2) {
+            if (boostedCreativity == false && state.number === 2 && state.phase2.memory < 100) {
+                return false;
+            }
+            else {
+                return true;
+            }
         }
         var rushLaterMet = getNumber('processors') < 150 || getNumber('creativity') > 125000;
         return lowLevelMet && rushLaterMet;
