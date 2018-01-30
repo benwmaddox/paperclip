@@ -1,4 +1,66 @@
+class Phase1State {
+    public unsoldClips : number = getNumber('unsoldClips');    
+    public totalClips : number = getNumber('clips');    
+}
 
+class Phase2State{
+    public memory : number = getNumber('processors');
+}
+
+class Phase3State {
+    public increaseProbeTrustAvailable : boolean = elementExists('btnIncreaseProbeTrust') && buttonEnabled('btnIncreaseProbeTrust');
+    public processors : number = getNumber('processors');
+}
+
+class Phase1Action {
+
+}
+
+class Phase2Action {
+
+}
+
+class Phase3Action{
+    public increaseProbeTrust() {
+        clickButton('btnIncreaseProbeTrust');
+    }
+}
+
+class CurrentState {
+    constructor() {        
+        if (elementExists('probeDesignDiv')){
+            this.number = 3;
+        }
+        else if (elementExists('powerConsumptionRate')){
+            this.number = 2;
+        }
+        else if (elementExists('btnMakePaperclip')){
+            this.number = 1;
+        }
+        else{
+            throw 'Can\'t find state';
+        }
+        
+    }
+    public number : 1 | 2 | 3;
+    public now : number = new Date().getTime();      
+    public phase1 : Phase1State = new Phase1State();
+    public phase2 : Phase2State = new Phase2State();
+    public phase3 : Phase3State = new Phase3State();
+    public phase1Action : Phase1Action = new Phase1Action();
+    public phase2Action : Phase2Action = new Phase2Action();
+    public phase3Action : Phase3Action = new Phase3Action();
+
+    // Shared    
+    public creativity : number = getNumber('creativity');  
+}
+var state = new CurrentState();
+
+// var getCurrentState : CurrentState = function(){
+//     var state = new CurrentState();
+
+//     return state;
+// };
 
 var positionIndicator = function(target : HTMLElement){
     var element = <HTMLDivElement>document.getElementById('selectedIndicatorBorder');
@@ -81,9 +143,9 @@ var initialClipLastRun : number = new Date().getTime() - 11000;
 projectList.push({
     name: "Initial clip clicks",
     canRun: () => {
-        var totalClips = getNumber('clips');
-        var now : number = new Date().getTime();        
-        return totalClips < 3000 && getNumber('unsoldClips') < 500  && buttonEnabled('btnMakePaperclip') && (now - initialClipLastRun > 10000) && getNumber('clipmakerLevel2') < 5;
+        
+                
+        return state.phase1.totalClips < 3000 && state.phase1.unsoldClips < 500  && buttonEnabled('btnMakePaperclip') && (state.now - initialClipLastRun > 10000) && getNumber('clipmakerLevel2') < 5;
     },
     priority: projectPriority.Lowest,
     run: () => {
@@ -114,7 +176,7 @@ projectList.push({
         var wire = getNumber('wire');
         var marketingCost = getNumber('adCost');
         var funds = getNumber('funds');
-        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 17 || getNumber('margin') < 0.05);
+        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 18 || getNumber('margin') < 0.05);
     },
     priority: projectPriority.High,
     run: () => {
@@ -220,11 +282,16 @@ var boostedCreativityTime : number = new Date().getTime() - 570000;
 projectList.push({
     name: 'Force minimum creativity for harder to get projects',
     canRun: () => {        
-        var lowLevelCheck = elementExists('creativity') && elementExists('processors')  && getNumber('processors') >= 5 && boostedCreativity == true && getNumber('creativity') < getNumber('processors') * 50 && (new Date().getTime() - boostedCreativityTime > 600000);
+        var lowLevelCheck = state.number === 1 && state.phase3.processors >= 5 && boostedCreativity == true && state.creativity < state.phase3.processors * 50 && (new Date().getTime() - boostedCreativityTime > 600000);
         if (lowLevelCheck){
             return true;
         }
-        var rushLater = elementExists('btnIncreaseProbeTrust') && getNumber('processors') >= 150 && getNumber('creativity') < 125000 && boostedCreativity == true;
+        var rushNumber2 = state.number === 2 && boostedCreativity == true && state.phase2.memory < 100;
+        if (rushNumber2){
+            return true;
+        }
+        var rushLater = state.number === 3 && state.phase3.processors >= 150 && getNumber('creativity') < 125000 && boostedCreativity == true;
+        
         return rushLater;
     },
     priority: projectPriority.Highest,
@@ -238,13 +305,13 @@ projectList.push({
     name: 'Creativity Goal started, so move slider to right',
     canRun: () => {        
         var slider = (<HTMLInputElement>document.getElementById('slider'));
-        
-        return boostedCreativity == false && slider.value < slider.max;
+              
+        return boostedCreativity == false && Number(slider.value) < 195;
     },
     priority: projectPriority.Highest,
     run: () => {
         var slider = (<HTMLInputElement>document.getElementById('slider'));
-        slider.value = slider.max;
+        slider.value  = "195";
     }
 });
 
@@ -253,8 +320,11 @@ projectList.push({
     name: 'Minimum creativity goal met',
     canRun: () => {        
         // Force creativity use too
-        
+          
         var lowLevelMet = boostedCreativity == false && ((getNumber('creativity') > getNumber('processors') * 50) || !elementExists('processors'));
+        if ( boostedCreativity == false && state.number === 2 && state.phase2.memory < 100) {
+            return false;
+        }
         var rushLaterMet = getNumber('processors') < 150 || getNumber('creativity') > 125000;
         return lowLevelMet && rushLaterMet;
     },
@@ -265,22 +335,49 @@ projectList.push({
     }
 });
 
+
+projectList.push({
+    name: 'The time is right to cash in investments',
+    canRun: () => {        
+        return buttonEnabled('btnWithdraw') && getNumber('trust') > 97 && getNumber('investmentBankroll') > 0;
+    },
+    priority: projectPriority.Low,
+    run: () => {
+        clickButton('btnWithdraw');
+    }
+});
+
+
 var isEndGameProject = function(name: string){
     return name === "Reject " || name === "Accept ";
 }
 // run projects
 var buttonsThatHoldUpOtherProjects : string[] = [
+    "projectButton14", // Combinatory Harmonics 
+    "projectButton15", // The Hadwiger Problem 
+    "projectButton16", // Hadwiger Clip Diagrams 
+    "projectButton17", // The Tóth Sausage Conjecture 
+    "projectButton19", // Donkey Space
     "projectButton134", // Glory
     "projectButton11", // New Slogan
     "projectButton12", // Catchy Jingle
-    "projectButton20", //Strategic Modeling
-    //'projectButton51', // Photonic chip    
+    // "projectButton20", //Strategic Modeling
+    'projectButton51', // Photonic chip    
     "projectButton30", // Global Warming
     "projectButton29", // World Peace
-    "projectButton38", // Full Monopoly
-    "projectButton102" // Self-correcting Supply Chain
+    //"projectButton38", // Full Monopoly
+    "projectButton102", // Self-correcting Supply Chain
+    "projectButton28", // Cure for Cancer
+    "projectButton31", // Male Pattern Baldness
+    "projectButton10b", // Quantum Foam Annealment 
     // 'projectButton27' // Coherent Extrapolated Volition
+    "projectButton34", // Hypno Harmonics
+    "projectButton50" // Quantum Computing
     ];
+    
+var removeButtonsThatHoldUpOtherProjects = function(id: string){
+    buttonsThatHoldUpOtherProjects = buttonsThatHoldUpOtherProjects.filter(x => x !== id);
+}
 var getProjectsThatCouldBeRun = function() : {enabled : string[], disabled: string[]} {
 
     var enabledButtons : string[] = []
@@ -313,13 +410,12 @@ var getProjectsThatCouldBeRun = function() : {enabled : string[], disabled: stri
 projectList.push({
     name: 'Run projects',
     canRun: () => {
-        // var projectButtons  =  document.getElementsByClassName('projectButton');
         if (getNumber('processors') > 5 && boostedCreativity == false){
             return false;
         }
         var buttons = getProjectsThatCouldBeRun();
         
-        return buttons.enabled.length > 0;
+        return boostedCreativity == true && buttons.enabled.length > 0;
         
     },
     priority: projectPriority.Highest,
@@ -339,6 +435,7 @@ projectList.push({
                 }, 10)
                 
                 clickButton(id)
+                removeButtonsThatHoldUpOtherProjects(id);
                 return;
             }
         }
@@ -371,6 +468,20 @@ projectList.push({
         && (getNumber('avgRev') * 10 > getNumber('megaClipperCost') - 1000);
     },
     priority: projectPriority.Medium,
+    run: () => {        
+        clickButton('btnMakeMegaClipper')
+            
+    }
+})
+
+// buy mega clippers
+projectList.push({
+    name: 'Buy mega clippers when prices are high',
+    canRun: () => {
+        var wire = getNumber('wire');
+        return elementExists('btnMakeMegaClipper') && buttonEnabled('btnMakeMegaClipper') && getNumber('margin') > 0.25 && getNumber('megaClipperLevel') < 120;
+    },
+    priority: projectPriority.Low,
     run: () => {        
         clickButton('btnMakeMegaClipper')
             
@@ -587,6 +698,8 @@ projectList.push({
     },
     priority: projectPriority.High,
     run: function () {
+        clickButton('btnFarmx100');
+        clickButton('btnFarmx10');
         clickButton('btnMakeFarm');
     }
 });
@@ -693,7 +806,7 @@ projectList.push({
 projectList.push({
     name: 'Make Wire Drone X 100',
     canRun: () => {        
-        return elementExists('btnWireDronex100') && buttonEnabled('btnWireDronex100') && getNumber('wireDroneLevelDisplay') < 25900 && getNumber('harvesterLevelDisplay') > 300 && getNumber('wireDroneLevelDisplay') > 300
+        return elementExists('btnWireDronex100') && buttonEnabled('btnWireDronex100') && getNumber('wireDroneLevelDisplay') < 26400 && getNumber('harvesterLevelDisplay') > 300 && getNumber('wireDroneLevelDisplay') > 300
         && (getNumber('wireDroneLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20)
         ;       
 
@@ -750,11 +863,11 @@ projectList.push({
 projectList.push({
     name: 'Increase Probe Trust',
     canRun: () => {
-        return elementExists('btnIncreaseProbeTrust') && buttonEnabled('btnIncreaseProbeTrust');
+        return state.phase3.increaseProbeTrustAvailable;
     },
     priority: projectPriority.Highest,
     run: () => {    
-        clickButton('btnIncreaseProbeTrust');
+        state.phase3Action.increaseProbeTrust();
     }
 })
 projectList.push({
@@ -820,12 +933,13 @@ projectList.push({
         remaining -= 2;
         var random = Math.random();
         var halfRemaining = Math.floor(remaining/2);
+        var quarterRemaining = Math.floor(remaining/4);
         if (random > 0.9 && elementExists('probeCombatDisplay')){
             setTimeout(() => {
                 console.log('Combat madness');
             }, 100);
             
-            while (remaining > 10 && remaining > halfRemaining){
+            while (remaining > 10 && remaining > quarterRemaining){
                 combat++;
                 remaining--;
             }
@@ -834,7 +948,7 @@ projectList.push({
             setTimeout(() => {
                 console.log('Replicate like crazy');
             }, 100);
-            while (remaining > 4 && remaining > halfRemaining){
+            while (remaining > 4 && remaining > quarterRemaining){
                 rep++;
                 haz++;
                 remaining-=2;
@@ -953,6 +1067,7 @@ projectList.push({
 });
 
 var runNextProject = function(){
+    state = new CurrentState();
     var enumsToLoop = [projectPriority.Highest, projectPriority.High, projectPriority.Medium, projectPriority.Low, projectPriority.Lowest]
     for(var i = 0; i < enumsToLoop.length; i++){
         var canRunInPriorityLevel : IProject[]= [];
