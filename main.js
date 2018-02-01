@@ -307,8 +307,8 @@ projectList.push({
     canRun: function () {
         // Force creativity use too
         var lowLevelMet = boostedCreativity == false && ((getNumber('creativity') > getNumber('processors') * 50) || !elementExists('processors'));
-        if (state.number === 2) {
-            if (boostedCreativity == false && state.number === 2 && state.phase2.memory < 100) {
+        if (state.number === 2 && boostedCreativity == false) {
+            if (state.number === 2 && state.phase2.memory < 100) {
                 return false;
             }
             else {
