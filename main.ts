@@ -176,7 +176,7 @@ projectList.push({
         var wire = getNumber('wire');
         var marketingCost = getNumber('adCost');
         var funds = getNumber('funds');
-        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 18 || getNumber('margin') < 0.05);
+        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 17 || getNumber('margin') < 0.05);
     },
     priority: projectPriority.High,
     run: () => {
@@ -286,7 +286,7 @@ projectList.push({
         if (lowLevelCheck){
             return true;
         }
-        var rushNumber2 = state.number === 2 && boostedCreativity == true && state.phase2.memory < 100;
+        var rushNumber2 = state.number === 2 && boostedCreativity == true && state.phase2.memory > 80 && state.phase2.memory < 100 && productionWorking();
         if (rushNumber2){
             return true;
         }
@@ -297,6 +297,19 @@ projectList.push({
     priority: projectPriority.Highest,
     run: () => {
         boostedCreativity = false;
+        boostedCreativityTime = new Date().getTime();
+    }
+});
+
+projectList.push({
+    name: 'Creativity goal took too long. Pausing it.',
+    canRun: function () {
+        var slider = document.getElementById('slider');
+        return boostedCreativity == false && (state.now - boostedCreativityTime > 300000);
+    },
+    priority: projectPriority.Highest,
+    run: function () {
+        boostedCreativity = true;
         boostedCreativityTime = new Date().getTime();
     }
 });
@@ -377,7 +390,9 @@ var buttonsThatHoldUpOtherProjects : string[] = [
     "projectButton10b", // Quantum Foam Annealment 
     // 'projectButton27' // Coherent Extrapolated Volition
     "projectButton34", // Hypno Harmonics
-    "projectButton50" // Quantum Computing
+    "projectButton50", // Quantum Computing
+    "projectButton26", // Wirebuyer 
+    "projectButton126" // Swarm Computing
     ];
     
 var removeButtonsThatHoldUpOtherProjects = function(id: string){
@@ -682,6 +697,14 @@ projectList.push({
         clickButton('btnEntertainSwarm');
     }
 })
+var productionWorking = function() {
+     return getNumber('harvesterLevelDisplay')>0 &&
+     getNumber('wireDroneLevelDisplay')>0 &&
+     getNumber('factoryLevelDisplay')>0 &&
+     getNumber('farmLevel')>0 &&
+     getNumber('batteryLevel')>0 &&
+     (getNumber('powerConsumptionRate') <= getNumber('powerProductionRate'))    ;
+}
 projectList.push({
     name: 'Make Solar',
     canRun: () => {        
@@ -723,7 +746,7 @@ projectList.push({
 projectList.push({
     name: 'Make Battery Storage',
     canRun: () => {        
-        return elementExists('btnMakeBattery') && buttonEnabled('btnMakeBattery') && getNumber('maxStorage') < 10000000 && getNumber('maxStorage') == getNumber('storedPower');        
+        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && elementExists('btnMakeBattery') && buttonEnabled('btnMakeBattery') && getNumber('maxStorage') < 10000000 && getNumber('maxStorage') == getNumber('storedPower');        
     },
     priority: projectPriority.Lowest,
     run: () => {    
@@ -750,14 +773,6 @@ projectList.push({
         clickButton('btnBatteryx100');
     }
 })
-var productionWorking = function() {
-     return getNumber('harvesterLevelDisplay')>0 &&
-     getNumber('wireDroneLevelDisplay')>0 &&
-     getNumber('factoryLevelDisplay')>0 &&
-     getNumber('farmLevel')>0 &&
-     getNumber('batteryLevel')>0 &&
-     (getNumber('powerConsumptionRate') <= getNumber('powerProductionRate'))    ;
-}
 projectList.push({
     name: 'Make Factory',
     canRun: () => {        
@@ -768,6 +783,22 @@ projectList.push({
         clickButton('btnMakeFactory');
     }
 })
+
+projectList.push({
+    name: 'Make Wire Drone when nano wire is 0',
+    canRun: () => {        
+        return  productionWorking()  && getNumber('nanoWire') == 0 && buttonEnabled('btnMakeWireDrone') && getNumber('wireDroneLevelDisplay') < 500        
+        ;        
+    },
+    priority: projectPriority.Low,
+    run: () => {            
+        clickButton('btnWireDronex1000');
+        clickButton('btnWireDronex100');
+        clickButton('btnWireDronex10');
+        clickButton('btnMakeWireDrone');
+    }
+})
+
 
 projectList.push({
     name: 'Make Wire Drone',
@@ -783,6 +814,7 @@ projectList.push({
     }
 })
 
+
 projectList.push({
     name: 'Make Harvester',
     canRun: () => {        
@@ -796,6 +828,22 @@ projectList.push({
         clickButton('btnMakeHarvester');
     }
 })
+projectList.push({
+    name: 'Make Harvester when matter is 0',
+    canRun: () => {        
+        return  productionWorking() && getNumber('acquiredMatterDisplay') == 0 && buttonEnabled('btnMakeHarvester') && getNumber('harvesterLevelDisplay') < 500        
+        ;        
+    },
+    priority: projectPriority.Low,
+    run: () => {    
+        clickButton('btnHarvesterx1000');
+        clickButton('btnHarvesterx100');
+        clickButton('btnHarvesterx10');
+        clickButton('btnMakeHarvester');
+    }
+})
+
+
 projectList.push({
     name: 'Make Harvester X 100',
     canRun: () => {        
@@ -1094,7 +1142,7 @@ var runNextProject = function(){
 
 var automation = function () {
     runNextProject();
-    var automationTimeout = Math.random() > 0.99 ? 15000 : 1000;
+    var automationTimeout = 1000;// Math.random() > 0.99 ? 15000 : 1000;
     setTimeout(automation, automationTimeout);
 };
 automation();
