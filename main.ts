@@ -556,7 +556,7 @@ projectList.push({
     canRun: () => {
         return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 11;
     },
-    priority: projectPriority.Lowest,
+    priority: projectPriority.Low,
     run: () => {        
         clickButton('btnImproveInvestments')
     }
@@ -599,7 +599,7 @@ var lastSliderTime : number = (new Date()).getTime() - 90000;
 projectList.push({
     name: 'Set slider somewhere near the middle',
     canRun: () => {
-        return elementExists('slider') && (new Date().getTime() - lastSliderTime > 90000) ;
+        return boostedCreativity == true && elementExists('slider') && (new Date().getTime() - lastSliderTime > 90000) ;
     },
     priority: projectPriority.High,
     run: () => {    
@@ -610,10 +610,10 @@ projectList.push({
             // Push for some thinking in this period
             random +=  Number(slider.max)*0.25;
         }
-        else if (getNumber('memory') < 300){
-            // Push for more thinking in this period
-            random +=  Number(slider.max)*0.5;
-        }      
+        // else if (getNumber('memory') < 300){
+        //     // Push for more thinking in this period
+        //     random +=  Number(slider.max)*0.5;
+        // }      
 
         slider.value = random.toString();
         
