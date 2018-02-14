@@ -282,7 +282,10 @@ var boostedCreativityTime : number = new Date().getTime() - 570000;
 projectList.push({
     name: 'Force minimum creativity for harder to get projects',
     canRun: () => {        
-        var lowLevelCheck = state.number === 1 && state.phase3.processors >= 5 && boostedCreativity == true && state.creativity < state.phase3.processors * 50 && (new Date().getTime() - boostedCreativityTime > 600000);
+        if (state.now - boostedCreativityTime < 600000){
+            return false;
+        }
+        var lowLevelCheck = state.number === 1 && state.phase3.processors >= 5 && boostedCreativity == true && state.creativity < state.phase3.processors * 50 ;
         if (lowLevelCheck){
             return true;
         }
@@ -392,7 +395,8 @@ var buttonsThatHoldUpOtherProjects : string[] = [
     "projectButton34", // Hypno Harmonics
     "projectButton50", // Quantum Computing
     "projectButton26", // Wirebuyer 
-    "projectButton126" // Swarm Computing
+    "projectButton126", // Swarm Computing
+    "projectButton100" // Upgraded Factories
     ];
     
 var removeButtonsThatHoldUpOtherProjects = function(id: string){
@@ -710,7 +714,7 @@ projectList.push({
     canRun: () => {        
         var consumption = getNumber('powerConsumptionRate');
         var production = getNumber('powerProductionRate');
-        return elementExists('btnMakeFarm') && consumption * 1.2 > production && buttonEnabled('btnMakeFarm')  && getNumber('farmLevel') < 1700;
+        return elementExists('btnMakeFarm') && consumption * 1.5 > production && buttonEnabled('btnMakeFarm')  && getNumber('farmLevel') < 1800;
     },
     priority: projectPriority.Lowest,
     run: () => {    
@@ -736,7 +740,7 @@ projectList.push({
     canRun: () => {        
         var consumption = getNumber('powerConsumptionRate');
         var production = getNumber('powerProductionRate');
-        return elementExists('btnFarmx100') && consumption * 1.2 >= production && buttonEnabled('btnFarmx100') && getNumber('farmLevel') < 1600;
+        return elementExists('btnFarmx100') && consumption * 1.2 >= production && buttonEnabled('btnFarmx100') && getNumber('farmLevel') < 1700;
     },
     priority: projectPriority.Low,
     run: () => {    
@@ -775,11 +779,12 @@ projectList.push({
 })
 projectList.push({
     name: 'Make Factory',
-    canRun: () => {        
-        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175;        
+    canRun: () => { 
+        // TODO: make sure self-correcting isn't pending       
+        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && elementExists('unusedClipsDisplay') && (<HTMLElement>getById('unusedClipsDisplay')).innerText.indexOf('quintillion') === -1 && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175;        
     },
     priority: projectPriority.Medium,
-    run: () => {    
+    run: () => {            
         clickButton('btnMakeFactory');
     }
 })
@@ -803,7 +808,7 @@ projectList.push({
 projectList.push({
     name: 'Make Wire Drone',
     canRun: () => {        
-        return  (productionWorking() || getNumber('wireDroneLevelDisplay')==0) && elementExists('btnMakeWireDrone') && buttonEnabled('btnMakeWireDrone') && getNumber('wireDroneLevelDisplay') < 26500
+        return  (productionWorking() || getNumber('wireDroneLevelDisplay')==0) && elementExists('btnMakeWireDrone') && buttonEnabled('btnMakeWireDrone') && getNumber('wireDroneLevelDisplay') < 27000
         && (getNumber('wireDroneLevelDisplay') < 250 || getNumber('factoryLevelDisplay') > 10)
         && (getNumber('wireDroneLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20)
         ;        
@@ -818,7 +823,7 @@ projectList.push({
 projectList.push({
     name: 'Make Harvester',
     canRun: () => {        
-        return (productionWorking() || getNumber('harvesterLevelDisplay')==0) && elementExists('btnMakeHarvester') && buttonEnabled('btnMakeHarvester') && getNumber('harvesterLevelDisplay') < 23500
+        return (productionWorking() || getNumber('harvesterLevelDisplay')==0) && elementExists('btnMakeHarvester') && buttonEnabled('btnMakeHarvester') && getNumber('harvesterLevelDisplay') < 23000
         && (getNumber('harvesterLevelDisplay') < 250 || getNumber('factoryLevelDisplay') > 10)
         && (getNumber('harvesterLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20)
         ;        
@@ -847,7 +852,7 @@ projectList.push({
 projectList.push({
     name: 'Make Harvester X 100',
     canRun: () => {        
-        return elementExists('btnHarvesterx100') && buttonEnabled('btnHarvesterx100') && getNumber('harvesterLevelDisplay') < 23400 && getNumber('harvesterLevelDisplay') > 300 && getNumber('wireDroneLevelDisplay') > 300
+        return elementExists('btnHarvesterx100') && buttonEnabled('btnHarvesterx100') && getNumber('harvesterLevelDisplay') < 22900 && getNumber('harvesterLevelDisplay') > 300 && getNumber('wireDroneLevelDisplay') > 300
         && (getNumber('harvesterLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20);
 
     },
@@ -859,7 +864,7 @@ projectList.push({
 projectList.push({
     name: 'Make Wire Drone X 100',
     canRun: () => {        
-        return elementExists('btnWireDronex100') && buttonEnabled('btnWireDronex100') && getNumber('wireDroneLevelDisplay') < 26400 && getNumber('harvesterLevelDisplay') > 300 && getNumber('wireDroneLevelDisplay') > 300
+        return elementExists('btnWireDronex100') && buttonEnabled('btnWireDronex100') && getNumber('wireDroneLevelDisplay') < 26900 && getNumber('harvesterLevelDisplay') > 300 && getNumber('wireDroneLevelDisplay') > 300
         && (getNumber('wireDroneLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20)
         ;       
 
@@ -873,7 +878,7 @@ projectList.push({
 projectList.push({
     name: 'Make Harvester X 1000',
     canRun: () => {         
-        return elementExists('btnHarvesterx1000') && buttonEnabled('btnHarvesterx1000') && getNumber('harvesterLevelDisplay') < 22000 && getNumber('harvesterLevelDisplay') > 1000
+        return elementExists('btnHarvesterx1000') && buttonEnabled('btnHarvesterx1000') && getNumber('harvesterLevelDisplay') < 21000 && getNumber('harvesterLevelDisplay') > 1000
         && (getNumber('harvesterLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20);        
     },
     priority: projectPriority.Medium,
@@ -884,7 +889,7 @@ projectList.push({
 projectList.push({
     name: 'Make Wire Drone X 1000',
     canRun: () => {        
-        return elementExists('btnWireDronex1000') && buttonEnabled('btnWireDronex1000') && getNumber('wireDroneLevelDisplay') < 24000 && getNumber('wireDroneLevelDisplay') > 1000
+        return elementExists('btnWireDronex1000') && buttonEnabled('btnWireDronex1000') && getNumber('wireDroneLevelDisplay') < 25000 && getNumber('wireDroneLevelDisplay') > 1000
         && (getNumber('wireDroneLevelDisplay') < 2500 || getNumber('factoryLevelDisplay') > 20);        
     },
     priority: projectPriority.Medium,
@@ -894,19 +899,19 @@ projectList.push({
 })
 
 
-projectList.push({
-    name: 'Disassembling Factories, Harvester Drones, Wire Drones',
-    canRun: () => {        
-        return elementExists('btnFactoryReboot') && buttonEnabled('btnFactoryReboot') && getNumber('availableMatterDisplay') == 0 && getNumber('acquiredMatterDisplay') == 0 
-        && getNumber('nanoWire') == 0 && getNumber('operations') > 120000;        
-    },
-    priority: projectPriority.High,
-    run: () => {    
-        clickButton('btnFactoryReboot');
-        clickButton('btnHarvesterReboot');
-        clickButton('btnWireDroneReboot');
-    }
-})
+// projectList.push({
+//     name: 'Disassembling Factories, Harvester Drones, Wire Drones',
+//     canRun: () => {        
+//         return elementExists('btnFactoryReboot') && buttonEnabled('btnFactoryReboot') && getNumber('availableMatterDisplay') == 0 && getNumber('acquiredMatterDisplay') == 0 
+//         && getNumber('nanoWire') == 0 && getNumber('operations') > 120000;        
+//     },
+//     priority: projectPriority.High,
+//     run: () => {    
+//         clickButton('btnFactoryReboot');
+//         clickButton('btnHarvesterReboot');
+//         clickButton('btnWireDroneReboot');
+//     }
+// })
 
 
 
