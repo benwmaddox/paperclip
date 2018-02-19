@@ -491,8 +491,8 @@ projectList.push({
             var memory = getNumber('memory');
             if ((processors < 5 ||
                 (memory < 90 && processors * 4 < memory) ||
-                (memory > 100 && memory < 120 && processors * 0.75 < memory) ||
-                (memory >= 150 && processors < memory) ||
+                // (memory > 100 && memory < 120 && processors * 0.75 < memory) ||
+                (memory >= 100 && processors < memory) ||
                 memory > 300)) {
                 clickButton('btnAddProc');
             }
@@ -735,7 +735,7 @@ projectList.push({
     name: 'Make Factory',
     canRun: function () {
         // TODO: make sure self-correcting isn't pending       
-        return (productionWorking() || getNumber('factoryLevelDisplay') == 0) && elementExists('unusedClipsDisplay') && getById('unusedClipsDisplay').innerText.indexOf('quintillion') === -1 && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175;
+        return (productionWorking() || getNumber('factoryLevelDisplay') == 0) && getNumber('wire') > 0 && elementExists('unusedClipsDisplay') && getById('unusedClipsDisplay').innerText.indexOf('quintillion') === -1 && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175;
     },
     priority: projectPriority.Medium,
     run: function () {
