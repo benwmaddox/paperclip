@@ -1,35 +1,35 @@
 "use strict";
-var Phase1State = (function () {
+var Phase1State = /** @class */ (function () {
     function Phase1State() {
         this.unsoldClips = getNumber('unsoldClips');
         this.totalClips = getNumber('clips');
     }
     return Phase1State;
 }());
-var Phase2State = (function () {
+var Phase2State = /** @class */ (function () {
     function Phase2State() {
         this.memory = getNumber('memory');
     }
     return Phase2State;
 }());
-var Phase3State = (function () {
+var Phase3State = /** @class */ (function () {
     function Phase3State() {
         this.increaseProbeTrustAvailable = elementExists('btnIncreaseProbeTrust') && buttonEnabled('btnIncreaseProbeTrust');
         this.processors = getNumber('processors');
     }
     return Phase3State;
 }());
-var Phase1Action = (function () {
+var Phase1Action = /** @class */ (function () {
     function Phase1Action() {
     }
     return Phase1Action;
 }());
-var Phase2Action = (function () {
+var Phase2Action = /** @class */ (function () {
     function Phase2Action() {
     }
     return Phase2Action;
 }());
-var Phase3Action = (function () {
+var Phase3Action = /** @class */ (function () {
     function Phase3Action() {
     }
     Phase3Action.prototype.increaseProbeTrust = function () {
@@ -37,7 +37,7 @@ var Phase3Action = (function () {
     };
     return Phase3Action;
 }());
-var CurrentState = (function () {
+var CurrentState = /** @class */ (function () {
     function CurrentState() {
         this.now = new Date().getTime();
         this.phase1 = new Phase1State();
@@ -173,7 +173,7 @@ projectList.push({
         var wire = getNumber('wire');
         var marketingCost = getNumber('adCost');
         var funds = getNumber('funds');
-        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 17 || getNumber('margin') < 0.05);
+        return (wire > 1500 || marketingCost * 2 < funds) && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 17 || getNumber('margin') < 0.05);
     },
     priority: projectPriority.High,
     run: function () {
@@ -309,7 +309,7 @@ projectList.push({
     name: 'Creativity Goal started, so move slider to right',
     canRun: function () {
         var slider = document.getElementById('slider');
-        return boostedCreativity == false && Number(slider.value) < 195;
+        return boostedCreativity == false && Number(slider.value) < 195 && elementExists('slider');
     },
     priority: projectPriority.Highest,
     run: function () {
@@ -492,7 +492,7 @@ projectList.push({
             if ((processors < 5 ||
                 (memory < 90 && processors * 4 < memory) ||
                 // (memory > 100 && memory < 120 && processors * 0.75 < memory) ||
-                (memory >= 100 && processors < memory) ||
+                (memory >= 120 && processors < memory) ||
                 memory > 300)) {
                 clickButton('btnAddProc');
             }
@@ -521,7 +521,8 @@ projectList.push({
 projectList.push({
     name: 'Improve investments',
     canRun: function () {
-        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 11;
+        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 9;
+        s;
     },
     priority: projectPriority.Low,
     run: function () {
@@ -734,8 +735,8 @@ projectList.push({
 projectList.push({
     name: 'Make Factory',
     canRun: function () {
-        // TODO: make sure self-correcting isn't pending       
-        return (productionWorking() || getNumber('factoryLevelDisplay') == 0) && getNumber('wire') > 0 && elementExists('unusedClipsDisplay') && getById('unusedClipsDisplay').innerText.indexOf('quintillion') === -1 && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175;
+        return (productionWorking() || getNumber('factoryLevelDisplay') == 0) && getNumber('wire') != 0 && elementExists('unusedClipsDisplay') && getById('unusedClipsDisplay').innerText.indexOf('quintillion') === -1 && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175
+            && (!elementExists('projectButton102') || getNumber('factoryLevelDisplay') < 50);
     },
     priority: projectPriority.Medium,
     run: function () {

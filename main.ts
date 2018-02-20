@@ -176,7 +176,7 @@ projectList.push({
         var wire = getNumber('wire');
         var marketingCost = getNumber('adCost');
         var funds = getNumber('funds');
-        return wire > 1500 && marketingCost < funds && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 17 || getNumber('margin') < 0.05);
+        return (wire > 1500 || marketingCost * 2 < funds)  && buttonEnabled('btnExpandMarketing') && (getNumber('marketingLvl') < 17 || getNumber('margin') < 0.05);
     },
     priority: projectPriority.High,
     run: () => {
@@ -322,7 +322,7 @@ projectList.push({
     canRun: () => {        
         var slider = (<HTMLInputElement>document.getElementById('slider'));
               
-        return boostedCreativity == false && Number(slider.value) < 195;
+        return boostedCreativity == false && Number(slider.value) < 195 && elementExists('slider') ;
     },
     priority: projectPriority.Highest,
     run: () => {
@@ -554,7 +554,7 @@ projectList.push({
 projectList.push({
     name: 'Improve investments',
     canRun: () => {
-        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 11;
+        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 9s;
     },
     priority: projectPriority.Low,
     run: () => {        
@@ -780,8 +780,8 @@ projectList.push({
 projectList.push({
     name: 'Make Factory',
     canRun: () => { 
-        // TODO: make sure self-correcting isn't pending       
-        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && getNumber('wire') > 0 && elementExists('unusedClipsDisplay') && (<HTMLElement>getById('unusedClipsDisplay')).innerText.indexOf('quintillion') === -1 && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175;        
+        return (productionWorking() || getNumber('factoryLevelDisplay')==0) && getNumber('wire') != 0 && elementExists('unusedClipsDisplay') && (<HTMLElement>getById('unusedClipsDisplay')).innerText.indexOf('quintillion') === -1 && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175        
+        && (!elementExists('projectButton102') ||  getNumber('factoryLevelDisplay') < 50);        
     },
     priority: projectPriority.Medium,
     run: () => {            
