@@ -280,7 +280,7 @@ projectList.push({
         if (lowLevelCheck) {
             return true;
         }
-        var rushNumber2 = state.number === 2 && boostedCreativity == true && state.phase2.memory > 80 && state.phase2.memory < 100 && productionWorking();
+        var rushNumber2 = state.number === 2 && boostedCreativity == true && state.phase2.memory > 80 && state.phase2.memory < 120 && productionWorking();
         if (rushNumber2) {
             return true;
         }
@@ -323,7 +323,7 @@ projectList.push({
         // Force creativity use too
         var lowLevelMet = boostedCreativity == false && ((getNumber('creativity') > getNumber('processors') * 50) || !elementExists('processors'));
         if (state.number === 2 && boostedCreativity == false) {
-            if (state.number === 2 && state.phase2.memory < 100) {
+            if (state.number === 2 && state.phase2.memory < 120) {
                 return false;
             }
             else {
@@ -364,8 +364,8 @@ var buttonsThatHoldUpOtherProjects = [
     "projectButton12",
     // "projectButton20", //Strategic Modeling
     'projectButton51',
-    "projectButton30",
-    "projectButton29",
+    //"projectButton30", // Global Warming
+    //"projectButton29", // World Peace
     //"projectButton38", // Full Monopoly
     "projectButton102",
     "projectButton28",
@@ -735,7 +735,7 @@ projectList.push({
 projectList.push({
     name: 'Make Factory',
     canRun: function () {
-        return (productionWorking() || getNumber('factoryLevelDisplay') == 0) && getNumber('wire') != 0 && elementExists('unusedClipsDisplay') && getById('unusedClipsDisplay').innerText.indexOf('quintillion') === -1 && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175
+        return (productionWorking() || getNumber('factoryLevelDisplay') == 0) && getNumber('wire') != 0 && elementExists('unusedClipsDisplay') && elementExists('btnMakeFactory') && buttonEnabled('btnMakeFactory') && getNumber('factoryLevelDisplay') < 175
             && (!elementExists('projectButton102') || getNumber('factoryLevelDisplay') < 50);
     },
     priority: projectPriority.Medium,
