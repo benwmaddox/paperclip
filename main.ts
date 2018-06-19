@@ -554,7 +554,7 @@ projectList.push({
 projectList.push({
     name: 'Improve investments',
     canRun: () => {
-        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 9s;
+        return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 9;
     },
     priority: projectPriority.Low,
     run: () => {        

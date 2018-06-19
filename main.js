@@ -522,7 +522,6 @@ projectList.push({
     name: 'Improve investments',
     canRun: function () {
         return elementExists('btnImproveInvestments') && buttonEnabled('btnImproveInvestments') && getNumber('investmentLevel') < 9;
-        s;
     },
     priority: projectPriority.Low,
     run: function () {
