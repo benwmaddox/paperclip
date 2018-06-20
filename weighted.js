@@ -145,20 +145,34 @@ var WeightedNamespace;
     actions.push({ id: "btnMakePaperclip", value: "click", increase: ["clips"], decrease: ["wire"] });
     actions.push({ id: "btnBuyWire", value: "click", increase: ["wire"], decrease: ["funds"] });
     actions.push({ id: "btnExpandMarketing", value: "click", increase: ["avgRev"], decrease: ["funds"] });
+    actions.push({ id: "btnMakeClipper", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds"] });
+    actions.push({ id: "btnLowerPrice", value: "click", increase: ["funds", "avgRev"], decrease: ["unsoldClips", "clips"] });
+    actions.push({ id: "btnRaisePrice", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds", "avgRev"] });
+    actions.push({ id: "btnAddProc", value: "click", increase: ["creativity", "processors"], decrease: ["trust"] });
+    actions.push({ id: "btnAddMem", value: "click", increase: ["operations", "memory"], decrease: ["trust"] });
     var goals = [];
     var weightedGoals = {};
     var applyGoal = function (goal, weight) {
         if (weight == 0)
             return;
+        if (weightedGoals[goal] === undefined) {
+            weightedGoals[goal] = 0;
+        }
         weightedGoals[goal] = weightedGoals[goal] += weight;
+        // console.log('Applied Goal ' + goal);
     };
     function reduceWeighting(goal) {
-        weightedGoals[goal] = Math.floor(weightedGoals[goal] / 2);
+        weightedGoals[goal] = Math.floor(weightedGoals[goal] * 0.6);
     }
-    goals.push({ target: "clips", weight: function () { return getNumber("unsoldClips") < 100 ? 10 : 0; } });
-    goals.push({ target: "wire", weight: function () { return getNumber("wire") < 1000 ? 100 : 0; } });
-    var automationTimeout = 1000; // Math.random() > 0.99 ? 15000 : 1000;
-    var automation = function () {
+    goals.push({ target: "clips", weight: function () { return getNumber("clips") < 3000 ? 10 : 0; } });
+    goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < 1000 ? 10 : 0; } });
+    goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < 100 ? 100 : 0; } });
+    goals.push({ target: "wire", weight: function () { return getNumber("wire") < 1000 && !elementExists('btnToggleWireBuyer') ? 10 : 0; } });
+    goals.push({ target: "wire", weight: function () { return getNumber("wire") === 0 ? 100 : 0; } });
+    goals.push({ target: "avgRev", weight: function () { return 1; } });
+    // TODO: lookup projects and take needed items, compare to what is already there and add appropriately
+    WeightedNamespace.automationTimeout = 1000; // Math.random() > 0.99 ? 15000 : 1000;
+    WeightedNamespace.automation = function () {
         for (var i = 0; i < goals.length; i++) {
             var weight = goals[i].weight();
             if (weight > 0) {
@@ -171,13 +185,16 @@ var WeightedNamespace;
             applyAction(goal, action);
         }
         // runNextProject();        
-        setTimeout(automation, automationTimeout);
+        console.log(weightedGoals);
+        setTimeout(WeightedNamespace.automation, WeightedNamespace.automationTimeout);
     };
-    setTimeout(automation, automationTimeout);
     function getRandomWeightedGoal() {
         var totalWeights = 0;
-        for (var i = 0; i < weightedGoals.length; i++) {
-            totalWeights += weightedGoals[i];
+        for (var key in weightedGoals) {
+            totalWeights += weightedGoals[key];
+        }
+        if (totalWeights <= 100) {
+            return null;
         }
         var randomGoal = Math.random() * totalWeights;
         var cumulativeSum = 0;
@@ -208,9 +225,13 @@ var WeightedNamespace;
         return matchingActions[Math.floor(Math.random() * matchingActions.length)];
     }
     function applyAction(goalTarget, action) {
-        if (action.value == "click") {
+        if (action == null) {
+            reduceWeighting(goalTarget);
+        }
+        else if (action.value == "click") {
             if (buttonEnabled(action.id)) {
                 clickButton(action.id);
+                // console.log('Clicked ' + action.id);
             }
             else if (action.decrease != null) {
                 for (var i = 0; i < action.decrease.length; i++) {
@@ -1148,3 +1169,4 @@ var WeightedNamespace;
         }
     };
 })(WeightedNamespace || (WeightedNamespace = {}));
+setTimeout(WeightedNamespace.automation, WeightedNamespace.automationTimeout);

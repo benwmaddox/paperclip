@@ -152,6 +152,7 @@ namespace WeightedNamespace {
                     | "processors"
                     | "memory"
                     | "creativity"
+                    | "trust"
                     ;
 
     type Velocity = "avgRev";    
@@ -177,26 +178,42 @@ namespace WeightedNamespace {
     actions.push({id: "btnMakePaperclip", value: "click", increase: ["clips"], decrease: ["wire"]})
     actions.push({id: "btnBuyWire", value: "click", increase: ["wire"], decrease: ["funds"]})
     actions.push({id: "btnExpandMarketing", value: "click", increase: ["avgRev"], decrease: ["funds"]})
+    actions.push({id: "btnMakeClipper", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds"]})
+    actions.push({id: "btnLowerPrice", value: "click", increase: ["funds", "avgRev"], decrease: ["unsoldClips", "clips"]})    
+    actions.push({id: "btnRaisePrice", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds", "avgRev"]})
+    actions.push({id: "btnAddProc", value: "click", increase: ["creativity", "processors"], decrease: ["trust"]})    
+    actions.push({id: "btnAddMem", value: "click", increase: ["operations", "memory"], decrease: ["trust"]})
+    
 
     var goals : Goal[] = []
     var weightedGoals : { [s:string]: number}= {};
 
     var applyGoal = function(goal:  (Resource|Velocity), weight: 0|1|10|100){
         if (weight == 0) return;
+        if (weightedGoals[goal] === undefined){
+            weightedGoals[goal] = 0;
+        }
         weightedGoals[goal] = weightedGoals[goal] += weight;
+        // console.log('Applied Goal ' + goal);
     }
     function reduceWeighting(goal : Resource|Velocity){        
-        weightedGoals[goal] = Math.floor(weightedGoals[goal] / 2);
+        weightedGoals[goal] = Math.floor(weightedGoals[goal] * 0.6);
     }
-    goals.push({target: "clips", weight: () => getNumber("unsoldClips") < 100 ? 10 : 0})
-    goals.push({target: "wire", weight: () => getNumber("wire") < 1000 ? 100 : 0})
+    goals.push({target: "clips", weight: () => getNumber("clips") < 3000 ? 10 : 0})
+    goals.push({target: "unsoldClips", weight: () => getNumber("unsoldClips") < 1000 ? 10 : 0})
+    goals.push({target: "unsoldClips", weight: () => getNumber("unsoldClips") < 100 ? 100 : 0})
+    goals.push({target: "wire", weight: () => getNumber("wire") < 1000 && !elementExists('btnToggleWireBuyer') ? 10 : 0})
+    goals.push({target: "wire", weight: () => getNumber("wire") === 0 ? 100 : 0})
+    goals.push({target: "avgRev", weight: () => 1})
+
+    // TODO: lookup projects and take needed items, compare to what is already there and add appropriately
 
 
 
 
 
-    var automationTimeout = 1000;// Math.random() > 0.99 ? 15000 : 1000;
-    var automation = function () {
+    export var automationTimeout = 1000;// Math.random() > 0.99 ? 15000 : 1000;
+    export var automation = function () {
         for(var i =0; i< goals.length; i++){
             var weight = goals[i].weight();
             if (weight > 0){
@@ -207,22 +224,23 @@ namespace WeightedNamespace {
         var goal  = getRandomWeightedGoal();
         if (goal != null){
             var action : Action = findMatchingAction(goal);
-
             applyAction(goal, action);
         }
         // runNextProject();        
+        console.log(weightedGoals);
         setTimeout(automation, automationTimeout);
     };    
-    setTimeout(automation, automationTimeout);
 
 function getRandomWeightedGoal() : ResourceOrVelocity | null{
 
-    var totalWeights = 0;
-    for (var i= 0; i < weightedGoals.length; i++){
-        totalWeights += weightedGoals[i];
+    var totalWeights = 0;    
+    for (let key in weightedGoals){
+        totalWeights += weightedGoals[key];
+    }
+    if (totalWeights <= 100){
+        return null;
     }
     var randomGoal = Math.random() * totalWeights;
-
     var cumulativeSum =0;
     for (let key in weightedGoals){
 
@@ -255,9 +273,13 @@ function findMatchingAction(target : ResourceOrVelocity){
     return matchingActions[Math.floor(Math.random() * matchingActions.length)];
 }
 function applyAction(goalTarget : ResourceOrVelocity, action : Action){
-    if (action.value == "click"){
+    if (action == null) {
+        reduceWeighting(goalTarget);
+    }
+    else if (action.value == "click"){
         if (buttonEnabled(action.id)) {
             clickButton(action.id);
+            // console.log('Clicked ' + action.id);
         }
         else if (action.decrease != null){
             for(var i =0;i< action.decrease.length;i++){
@@ -267,7 +289,7 @@ function applyAction(goalTarget : ResourceOrVelocity, action : Action){
     }
     else {
         alert('not ready')
-    }
+    }    
     reduceWeighting(goalTarget);
 }
 
@@ -1280,3 +1302,7 @@ function applyAction(goalTarget : ResourceOrVelocity, action : Action){
     }
 
 }
+
+
+setTimeout( WeightedNamespace.automation, WeightedNamespace.automationTimeout);
+
