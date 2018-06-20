@@ -114,6 +114,9 @@ namespace WeightedNamespace {
         }
         return Number( element.innerText.replace(',','').replace(',','').replace(',','').replace(',','').replace(',','').replace(',',''))
     }
+    function cleanNumber(numberString : string){
+        return Number( numberString.replace(',','').replace(',','').replace(',','').replace(',','').replace(',','').replace(',',''))
+    }
     function elementExists(elementId : string) {
         var element = document.getElementById(elementId) ;
         return element != null && element.offsetParent !== null;
@@ -153,9 +156,12 @@ namespace WeightedNamespace {
                     | "memory"
                     | "creativity"
                     | "trust"
+                    | "maxOps"
                     ;
 
-    type Velocity = "avgRev";    
+    type Velocity = "avgRev"
+                    | "clipmakerRate"
+                    ;
 
     type ResourceOrVelocity = Resource | Velocity;
 
@@ -196,12 +202,12 @@ namespace WeightedNamespace {
         weightedGoals[goal] = weightedGoals[goal] += weight;
         // console.log('Applied Goal ' + goal);
     }
-    function reduceWeighting(goal : Resource|Velocity){        
-        weightedGoals[goal] = Math.floor(weightedGoals[goal] * 0.6);
+    function reduceWeighting(goal : Resource|Velocity, multipleToReduce : number){        
+        weightedGoals[goal] = Math.floor(weightedGoals[goal] * (1-multipleToReduce));
     }
     goals.push({target: "clips", weight: () => getNumber("clips") < 3000 ? 10 : 0})
     goals.push({target: "unsoldClips", weight: () => getNumber("unsoldClips") < 1000 ? 10 : 0})
-    goals.push({target: "unsoldClips", weight: () => getNumber("unsoldClips") < 100 ? 100 : 0})
+    goals.push({target: "unsoldClips", weight: () => getNumber("unsoldClips") < getNumber("clipmakerRate") * 5 ? 100 : 0})
     goals.push({target: "wire", weight: () => getNumber("wire") < 1000 && !elementExists('btnToggleWireBuyer') ? 10 : 0})
     goals.push({target: "wire", weight: () => getNumber("wire") === 0 ? 100 : 0})
     goals.push({target: "avgRev", weight: () => 1})
@@ -209,8 +215,25 @@ namespace WeightedNamespace {
     // TODO: lookup projects and take needed items, compare to what is already there and add appropriately
 
 
+    var getProjectsThatCouldBeRun = function() : {enabled : string[], disabled: string[]} {
 
-
+        var enabledButtons : string[] = []
+        var disabledButtons : string[]= [];    
+        var projectButtons  =  document.getElementsByClassName('projectButton');
+        for (var i = 0; i < projectButtons.length; i++){
+            if (elementExists(projectButtons[i].id) && buttonEnabled(projectButtons[i].id)  ){                               
+                enabledButtons.push(projectButtons[i].id);
+            }
+            else if (elementExists(projectButtons[i].id)) {                 
+                disabledButtons.push(projectButtons[i].id);
+            }
+            var textContent = projectButtons[i].childNodes[0].textContent || "";
+        }
+        return {
+                enabled: enabledButtons,
+                disabled: disabledButtons
+                };
+    }
 
     export var automationTimeout = 1000;// Math.random() > 0.99 ? 15000 : 1000;
     export var automation = function () {
@@ -226,10 +249,42 @@ namespace WeightedNamespace {
             var action : Action = findMatchingAction(goal);
             applyAction(goal, action);
         }
+
+        projectRunning();
+        addGoalsForNeededProjects();
         // runNextProject();        
         console.log(weightedGoals);
         setTimeout(automation, automationTimeout);
     };    
+function projectRunning(){
+
+    var projects = getProjectsThatCouldBeRun();
+    if (projects.enabled.length > 0){
+        clickButton(projects.enabled[0])
+    }
+
+}
+function addGoalsForNeededProjects(){    
+    var projectButtons = document.getElementsByClassName('projectButton');
+    for (var i =0; i < projectButtons.length; i++){
+        var costText : string = (<Text> projectButtons[i].childNodes[1]).data;
+        costText = costText.replace(')','').replace('(','');
+        var costs = costText.split(', ');
+        for (var j=0; j < costs.length; j++){
+            var costSplit = costs[j].split(" ");
+            var number = cleanNumber(costSplit[0]);
+            var type = costSplit[1];
+
+            if (type == "ops" && number > getNumber('maxOps') ){
+                applyGoal("operations", 1);
+            }
+            if (type == "creat"){
+                applyGoal("creativity", 1);
+            }
+        }
+        
+    }
+}
 
 function getRandomWeightedGoal() : ResourceOrVelocity | null{
 
@@ -237,7 +292,7 @@ function getRandomWeightedGoal() : ResourceOrVelocity | null{
     for (let key in weightedGoals){
         totalWeights += weightedGoals[key];
     }
-    if (totalWeights <= 100){
+    if (totalWeights <= 10){
         return null;
     }
     var randomGoal = Math.random() * totalWeights;
@@ -274,12 +329,13 @@ function findMatchingAction(target : ResourceOrVelocity){
 }
 function applyAction(goalTarget : ResourceOrVelocity, action : Action){
     if (action == null) {
-        reduceWeighting(goalTarget);
+        reduceWeighting(goalTarget, 0.1);
     }
     else if (action.value == "click"){
         if (buttonEnabled(action.id)) {
             clickButton(action.id);
-            // console.log('Clicked ' + action.id);
+            reduceWeighting(goalTarget, 0.5);
+            console.log('Clicked ' + action.id);
         }
         else if (action.decrease != null){
             for(var i =0;i< action.decrease.length;i++){
@@ -290,7 +346,6 @@ function applyAction(goalTarget : ResourceOrVelocity, action : Action){
     else {
         alert('not ready')
     }    
-    reduceWeighting(goalTarget);
 }
 
 

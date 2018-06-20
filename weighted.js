@@ -120,6 +120,9 @@ var WeightedNamespace;
         }
         return Number(element.innerText.replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', ''));
     }
+    function cleanNumber(numberString) {
+        return Number(numberString.replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', ''));
+    }
     function elementExists(elementId) {
         var element = document.getElementById(elementId);
         return element != null && element.offsetParent !== null;
@@ -161,16 +164,34 @@ var WeightedNamespace;
         weightedGoals[goal] = weightedGoals[goal] += weight;
         // console.log('Applied Goal ' + goal);
     };
-    function reduceWeighting(goal) {
-        weightedGoals[goal] = Math.floor(weightedGoals[goal] * 0.6);
+    function reduceWeighting(goal, multipleToReduce) {
+        weightedGoals[goal] = Math.floor(weightedGoals[goal] * (1 - multipleToReduce));
     }
     goals.push({ target: "clips", weight: function () { return getNumber("clips") < 3000 ? 10 : 0; } });
     goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < 1000 ? 10 : 0; } });
-    goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < 100 ? 100 : 0; } });
+    goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < getNumber("clipmakerRate") * 5 ? 100 : 0; } });
     goals.push({ target: "wire", weight: function () { return getNumber("wire") < 1000 && !elementExists('btnToggleWireBuyer') ? 10 : 0; } });
     goals.push({ target: "wire", weight: function () { return getNumber("wire") === 0 ? 100 : 0; } });
     goals.push({ target: "avgRev", weight: function () { return 1; } });
     // TODO: lookup projects and take needed items, compare to what is already there and add appropriately
+    var getProjectsThatCouldBeRun = function () {
+        var enabledButtons = [];
+        var disabledButtons = [];
+        var projectButtons = document.getElementsByClassName('projectButton');
+        for (var i = 0; i < projectButtons.length; i++) {
+            if (elementExists(projectButtons[i].id) && buttonEnabled(projectButtons[i].id)) {
+                enabledButtons.push(projectButtons[i].id);
+            }
+            else if (elementExists(projectButtons[i].id)) {
+                disabledButtons.push(projectButtons[i].id);
+            }
+            var textContent = projectButtons[i].childNodes[0].textContent || "";
+        }
+        return {
+            enabled: enabledButtons,
+            disabled: disabledButtons
+        };
+    };
     WeightedNamespace.automationTimeout = 1000; // Math.random() > 0.99 ? 15000 : 1000;
     WeightedNamespace.automation = function () {
         for (var i = 0; i < goals.length; i++) {
@@ -184,16 +205,43 @@ var WeightedNamespace;
             var action = findMatchingAction(goal);
             applyAction(goal, action);
         }
+        projectRunning();
+        addGoalsForNeededProjects();
         // runNextProject();        
         console.log(weightedGoals);
         setTimeout(WeightedNamespace.automation, WeightedNamespace.automationTimeout);
     };
+    function projectRunning() {
+        var projects = getProjectsThatCouldBeRun();
+        if (projects.enabled.length > 0) {
+            clickButton(projects.enabled[0]);
+        }
+    }
+    function addGoalsForNeededProjects() {
+        var projectButtons = document.getElementsByClassName('projectButton');
+        for (var i = 0; i < projectButtons.length; i++) {
+            var costText = projectButtons[i].childNodes[1].data;
+            costText = costText.replace(')', '').replace('(', '');
+            var costs = costText.split(', ');
+            for (var j = 0; j < costs.length; j++) {
+                var costSplit = costs[j].split(" ");
+                var number = cleanNumber(costSplit[0]);
+                var type = costSplit[1];
+                if (type == "ops" && number > getNumber('maxOps')) {
+                    applyGoal("operations", 1);
+                }
+                if (type == "creat") {
+                    applyGoal("creativity", 1);
+                }
+            }
+        }
+    }
     function getRandomWeightedGoal() {
         var totalWeights = 0;
         for (var key in weightedGoals) {
             totalWeights += weightedGoals[key];
         }
-        if (totalWeights <= 100) {
+        if (totalWeights <= 10) {
             return null;
         }
         var randomGoal = Math.random() * totalWeights;
@@ -226,12 +274,13 @@ var WeightedNamespace;
     }
     function applyAction(goalTarget, action) {
         if (action == null) {
-            reduceWeighting(goalTarget);
+            reduceWeighting(goalTarget, 0.1);
         }
         else if (action.value == "click") {
             if (buttonEnabled(action.id)) {
                 clickButton(action.id);
-                // console.log('Clicked ' + action.id);
+                reduceWeighting(goalTarget, 0.5);
+                console.log('Clicked ' + action.id);
             }
             else if (action.decrease != null) {
                 for (var i = 0; i < action.decrease.length; i++) {
@@ -242,7 +291,6 @@ var WeightedNamespace;
         else {
             alert('not ready');
         }
-        reduceWeighting(goalTarget);
     }
     // projectList.push({
     //     name: "Initial clip clicks",
