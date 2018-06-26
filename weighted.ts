@@ -239,7 +239,7 @@ namespace WeightedNamespace {
     goals.push({ target: "avgRev", weight: function () { return 1 } });
     goals.push({ target: "avgRev", weight: function () { return getNumber('clips') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
     goals.push({ target: "avgRev", weight: function () { return getNumber('funds') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
-    goals.push({target: "yomiDisplay", weight: () => elementExists('yomiDisplay') ? 1 : 0 })
+    goals.push({target: "yomiDisplay", weight: () => elementExists('yomiDisplay') && getNumber('operations') >= getNumber("maxOps") ? 10 : 0 })
     goals.push({target: "secValue", weight: () => elementExists('investmentEngine') ? 1 : 0 })    
     goals.push({target: "qChip", weight: () => {        
         return sum<Element>(document.getElementsByClassName('qChip'), (element) =>  Number ((<HTMLElement>element).style.opacity)) > 0.1 && getNumber('operations') < getNumber('maxOps') ? 100 : 0;
@@ -275,7 +275,7 @@ namespace WeightedNamespace {
                 };
     }
 
-    export var automationTimeout = 1000;// Math.random() > 0.99 ? 15000 : 1000;
+    export var automationTimeout = 300;// Math.random() > 0.99 ? 15000 : 1000;
     export var automation = function () {
         for(var i =0; i< goals.length; i++){
             var weight = goals[i].weight();
@@ -318,7 +318,7 @@ function addGoalsForNeededProjects(){
             var type = costSplit.length > 0 ? costSplit[1] : "";
             
             
-            if (costSplit[0].startsWith("$") && number > getNumber('funds')){                
+            if (costSplit[0].indexOf("$") > -1 && number > getNumber('funds')){                
                 applyGoal("funds", 1);
                 applyGoal("secValue", 10);
             }
@@ -365,9 +365,13 @@ function findMatchingAction(target : ResourceOrVelocity){
                 if (actions[i].value == "click" && !buttonEnabled(actions[i].id)){
                     continue;
                 }            
-                else if (document.getElementById(actions[i].id).tagName == "SELECT" 
-                    && getNumberFromValue(actions[i]) === (<HTMLSelectElement>document.getElementById(actions[i].id)).selectedIndex ){
-                    continue;
+                else if (document.getElementById(actions[i].id) != null ){
+                    var element = document.getElementById(actions[i].id);
+                    if (element != null 
+                        && element.tagName == "SELECT" 
+                        && getNumberFromValue(actions[i]) === (<HTMLSelectElement>element).selectedIndex ){
+                        continue;
+                    }
                 }    
 
                 matchingActions.push(actions[i]);
@@ -399,6 +403,10 @@ function applyAction(goalTarget : ResourceOrVelocity, action : Action){
     else if (typeof action.value === "function"){
         var number = action.value();
         var target = document.getElementById(action.id);
+        if (target == null){            
+            console.log('Target not found');
+            return;
+        }
         if (target.tagName === "SELECT"){            
             console.log('Changed index of ' + action.id + ' to ' + number);
             (<HTMLSelectElement>target).selectedIndex = number;

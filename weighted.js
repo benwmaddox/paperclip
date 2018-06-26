@@ -196,7 +196,7 @@ var WeightedNamespace;
     goals.push({ target: "avgRev", weight: function () { return 1; } });
     goals.push({ target: "avgRev", weight: function () { return getNumber('clips') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
     goals.push({ target: "avgRev", weight: function () { return getNumber('funds') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
-    goals.push({ target: "yomiDisplay", weight: function () { return elementExists('yomiDisplay') ? 1 : 0; } });
+    goals.push({ target: "yomiDisplay", weight: function () { return elementExists('yomiDisplay') && getNumber('operations') >= getNumber("maxOps") ? 10 : 0; } });
     goals.push({ target: "secValue", weight: function () { return elementExists('investmentEngine') ? 1 : 0; } });
     goals.push({ target: "qChip", weight: function () {
             return sum(document.getElementsByClassName('qChip'), function (element) { return Number(element.style.opacity); }) > 0.1 && getNumber('operations') < getNumber('maxOps') ? 100 : 0;
@@ -226,7 +226,7 @@ var WeightedNamespace;
             disabled: disabledButtons
         };
     };
-    WeightedNamespace.automationTimeout = 1000; // Math.random() > 0.99 ? 15000 : 1000;
+    WeightedNamespace.automationTimeout = 300; // Math.random() > 0.99 ? 15000 : 1000;
     WeightedNamespace.automation = function () {
         for (var i = 0; i < goals.length; i++) {
             var weight = goals[i].weight();
@@ -262,7 +262,7 @@ var WeightedNamespace;
                 var costSplit = costs[j].split(" ");
                 var number = cleanNumber(costSplit[0]);
                 var type = costSplit.length > 0 ? costSplit[1] : "";
-                if (costSplit[0].startsWith("$") && number > getNumber('funds')) {
+                if (costSplit[0].indexOf("$") > -1 && number > getNumber('funds')) {
                     applyGoal("funds", 1);
                     applyGoal("secValue", 10);
                 }
@@ -304,9 +304,13 @@ var WeightedNamespace;
                     if (actions[i].value == "click" && !buttonEnabled(actions[i].id)) {
                         continue;
                     }
-                    else if (document.getElementById(actions[i].id).tagName == "SELECT"
-                        && getNumberFromValue(actions[i]) === document.getElementById(actions[i].id).selectedIndex) {
-                        continue;
+                    else if (document.getElementById(actions[i].id) != null) {
+                        var element = document.getElementById(actions[i].id);
+                        if (element != null
+                            && element.tagName == "SELECT"
+                            && getNumberFromValue(actions[i]) === element.selectedIndex) {
+                            continue;
+                        }
                     }
                     matchingActions.push(actions[i]);
                 }
@@ -336,6 +340,10 @@ var WeightedNamespace;
         else if (typeof action.value === "function") {
             var number = action.value();
             var target = document.getElementById(action.id);
+            if (target == null) {
+                console.log('Target not found');
+                return;
+            }
             if (target.tagName === "SELECT") {
                 console.log('Changed index of ' + action.id + ' to ' + number);
                 target.selectedIndex = number;
