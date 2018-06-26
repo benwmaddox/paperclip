@@ -157,10 +157,12 @@ namespace WeightedNamespace {
                     | "creativity"
                     | "trust"
                     | "maxOps"
+                    | "yomiDisplay"
                     ;
 
     type Velocity = "avgRev"
                     | "clipmakerRate"
+                    | "qChip"
                     ;
 
     type ResourceOrVelocity = Resource | Velocity;
@@ -189,7 +191,10 @@ namespace WeightedNamespace {
     actions.push({id: "btnRaisePrice", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds", "avgRev"]})
     actions.push({id: "btnAddProc", value: "click", increase: ["creativity", "processors"], decrease: ["trust"]})    
     actions.push({id: "btnAddMem", value: "click", increase: ["operations", "memory"], decrease: ["trust"]})
-    
+    actions.push({id: "btnQcompute", value: "click", increase: ["qChip"], decrease: []})    
+    actions.push({id: "btnNewTournament", value: "click", increase: ["yomiDisplay"], decrease: ["operations"]})    
+    actions.push({id: "btnRunTournament", value: "click", increase: ["yomiDisplay"], decrease: []})    
+    actions.push({id: "stratPicker", value: () => (<HTMLSelectElement>document.getElementById('stratPicker')).length -1, increase: ["yomiDisplay"], decrease: ["operations"]})
 
     var goals : Goal[] = []
     var weightedGoals : { [s:string]: number}= {};
@@ -211,7 +216,19 @@ namespace WeightedNamespace {
     goals.push({target: "wire", weight: () => getNumber("wire") < 1000 && !elementExists('btnToggleWireBuyer') ? 10 : 0})
     goals.push({target: "wire", weight: () => getNumber("wire") === 0 ? 100 : 0})
     goals.push({target: "avgRev", weight: () => 1})
+    goals.push({target: "yomiDisplay", weight: () => elementExists('yomiDisplay') ? 1 : 0 })
+    goals.push({target: "qChip", weight: () => {        
+        return sum<Element>(document.getElementsByClassName('qChip'), (element) =>  Number ((<HTMLElement>element).style.opacity)) > 0.2 && getNumber('operations') < getNumber('maxOps') ? 100 : 0;
+    }})
 
+    function sum<T extends Element>(list : HTMLCollectionOf<T>, selectionMethod: (e : T) => number){
+        var total = 0;
+        
+        for (var i = 0; i < list.length; i++){ 
+            total += selectionMethod(list.item(i));
+        }
+        return total;
+    }
     // TODO: lookup projects and take needed items, compare to what is already there and add appropriately
 
 
@@ -320,6 +337,10 @@ function findMatchingAction(target : ResourceOrVelocity){
         if (increase == null) continue;
         for (var j=0; j< increase.length;j++){
             if (increase[j] == target){
+                if (actions[i].value == "click" && !buttonEnabled(actions[i].id)){
+                    continue;
+                }
+
                 matchingActions.push(actions[i]);
             }
         }
@@ -344,7 +365,7 @@ function applyAction(goalTarget : ResourceOrVelocity, action : Action){
         }
     }
     else {
-        alert('not ready')
+        console.log('not ready')
     }    
 }
 

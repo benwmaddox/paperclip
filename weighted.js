@@ -153,6 +153,10 @@ var WeightedNamespace;
     actions.push({ id: "btnRaisePrice", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds", "avgRev"] });
     actions.push({ id: "btnAddProc", value: "click", increase: ["creativity", "processors"], decrease: ["trust"] });
     actions.push({ id: "btnAddMem", value: "click", increase: ["operations", "memory"], decrease: ["trust"] });
+    actions.push({ id: "btnQcompute", value: "click", increase: ["qChip"], decrease: [] });
+    actions.push({ id: "btnNewTournament", value: "click", increase: ["yomiDisplay"], decrease: ["operations"] });
+    actions.push({ id: "btnRunTournament", value: "click", increase: ["yomiDisplay"], decrease: [] });
+    actions.push({ id: "stratPicker", value: function () { return document.getElementById('stratPicker').length - 1; }, increase: ["yomiDisplay"], decrease: ["operations"] });
     var goals = [];
     var weightedGoals = {};
     var applyGoal = function (goal, weight) {
@@ -173,6 +177,17 @@ var WeightedNamespace;
     goals.push({ target: "wire", weight: function () { return getNumber("wire") < 1000 && !elementExists('btnToggleWireBuyer') ? 10 : 0; } });
     goals.push({ target: "wire", weight: function () { return getNumber("wire") === 0 ? 100 : 0; } });
     goals.push({ target: "avgRev", weight: function () { return 1; } });
+    goals.push({ target: "yomiDisplay", weight: function () { return elementExists('yomiDisplay') ? 1 : 0; } });
+    goals.push({ target: "qChip", weight: function () {
+            return sum(document.getElementsByClassName('qChip'), function (element) { return Number(element.style.opacity); }) > 0.2 && getNumber('operations') < getNumber('maxOps') ? 100 : 0;
+        } });
+    function sum(list, selectionMethod) {
+        var total = 0;
+        for (var i = 0; i < list.length; i++) {
+            total += selectionMethod(list.item(i));
+        }
+        return total;
+    }
     // TODO: lookup projects and take needed items, compare to what is already there and add appropriately
     var getProjectsThatCouldBeRun = function () {
         var enabledButtons = [];
@@ -266,6 +281,9 @@ var WeightedNamespace;
                 continue;
             for (var j = 0; j < increase.length; j++) {
                 if (increase[j] == target) {
+                    if (actions[i].value == "click" && !buttonEnabled(actions[i].id)) {
+                        continue;
+                    }
                     matchingActions.push(actions[i]);
                 }
             }
@@ -289,7 +307,7 @@ var WeightedNamespace;
             }
         }
         else {
-            alert('not ready');
+            console.log('not ready');
         }
     }
     // projectList.push({
