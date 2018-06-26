@@ -205,7 +205,7 @@ namespace WeightedNamespace {
         if (getNumber('investmentLevel') <= 2){
             return 0;
         }
-        else if (getNumber('investmentLevel') <= 5){
+        else if (getNumber('investmentLevel') <= 4){
             return 1;
         }
         else return 2;
@@ -229,9 +229,9 @@ namespace WeightedNamespace {
 
 
     goals.push({ target: "clips", weight: function () { return getNumber("clips") < 3000 ? 10 : 0; } });
-    goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < 1000 && getNumber("wire") < 1000 ? 10 : 0; } });
+    goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < 1000 && getNumber("wire") < 1000 && getNumber('clipmakerRate') > 5 ? 10 : 0; } });
     goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < getNumber("clipmakerRate") * 5 ? 100 : 0; } });
-    goals.push({ target: "wire", weight: function () { return getNumber("wire") < 1000 && !elementExists('btnToggleWireBuyer') ? 10 : 0; } });
+    goals.push({ target: "wire", weight: function () { return getNumber("wire") < 1000  && getNumber('clipmakerRate') > 5 && !elementExists('btnToggleWireBuyer') ? 10 : 0; } });
     goals.push({ target: "wire", weight: function () { return getNumber("wire") === 0 ? 100 : 0; } });
     goals.push({ target: "processors", weight: function () { return getNumber("creativity") <= 100 && getNumber('memory') > 1 ? 1 : 0; } });
     goals.push({ target: "clips", weight: function () { return getNumber('wire') > 500 ? 10 : 0; } });
@@ -239,10 +239,10 @@ namespace WeightedNamespace {
     goals.push({ target: "avgRev", weight: function () { return 1 } });
     goals.push({ target: "avgRev", weight: function () { return getNumber('clips') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
     goals.push({ target: "avgRev", weight: function () { return getNumber('funds') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
-    goals.push({target: "yomiDisplay", weight: () => elementExists('yomiDisplay') && getNumber('operations') >= getNumber("maxOps") ? 10 : 0 })
+    goals.push({target: "yomiDisplay", weight: () => elementExists('yomiDisplay') && getNumber('operations') * 2 >= getNumber("maxOps") ? 10 : 0 })
     goals.push({target: "secValue", weight: () => elementExists('investmentEngine') ? 1 : 0 })    
     goals.push({target: "qChip", weight: () => {        
-        return sum<Element>(document.getElementsByClassName('qChip'), (element) =>  Number ((<HTMLElement>element).style.opacity)) > 0.1 && getNumber('operations') < getNumber('maxOps') ? 100 : 0;
+        return sum<Element>(document.getElementsByClassName('qChip'), (element) =>  Number ((<HTMLElement>element).style.opacity)) > 0.2 && getNumber('operations') < getNumber('maxOps') ? 100 : 0;
     }})
 
     function sum<T extends Element>(list : HTMLCollectionOf<T>, selectionMethod: (e : T) => number){
