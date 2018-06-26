@@ -147,7 +147,7 @@ var WeightedNamespace;
     var actions = [];
     actions.push({ id: "btnMakePaperclip", value: "click", increase: ["clips"], decrease: ["wire"] });
     actions.push({ id: "btnBuyWire", value: "click", increase: ["wire"], decrease: ["funds"] });
-    actions.push({ id: "btnExpandMarketing", value: "click", increase: ["avgRev"], decrease: ["funds"] });
+    actions.push({ id: "btnExpandMarketing", value: "click", increase: ["avgRev"], decrease: ["funds", "secValue"] });
     actions.push({ id: "btnMakeClipper", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds"] });
     actions.push({ id: "btnLowerPrice", value: "click", increase: ["funds", "avgRev"], decrease: ["unsoldClips"] });
     actions.push({ id: "btnRaisePrice", value: "click", increase: ["unsoldClips"], decrease: ["funds", "avgRev"] });
@@ -155,9 +155,22 @@ var WeightedNamespace;
     actions.push({ id: "btnAddMem", value: "click", increase: ["operations", "memory"], decrease: ["trust"] });
     actions.push({ id: "btnQcompute", value: "click", increase: ["qChip"], decrease: [] });
     actions.push({ id: "btnNewTournament", value: "click", increase: ["yomiDisplay"], decrease: ["operations"] });
+    actions.push({ id: "stratPicker", value: function () { return document.getElementById('stratPicker').selectedIndex - 1; }, increase: ["yomiDisplay"], decrease: ["operations"] });
     actions.push({ id: "btnRunTournament", value: "click", increase: ["yomiDisplay"], decrease: [] });
     actions.push({ id: "stratPicker", value: function () { return document.getElementById('stratPicker').length - 1; }, increase: ["yomiDisplay"], decrease: ["operations"] });
     actions.push({ id: "btnMakeMegaClipper", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds"] });
+    actions.push({ id: "btnImproveInvestments", value: "click", increase: ["secValue"], decrease: ["yomiDisplay"] });
+    actions.push({ id: "btnInvest", value: "click", increase: ["secValue"], decrease: ["funds"] });
+    actions.push({ id: "investStrat", value: function () {
+            if (getNumber('investmentLevel') < 3) {
+                return 0;
+            }
+            else if (getNumber('investmentLevel') < 6) {
+                return 1;
+            }
+            else
+                return 2;
+        }, increase: ["secValue"], decrease: ["funds"] });
     var goals = [];
     var weightedGoals = {};
     var applyGoal = function (goal, weight) {
@@ -180,9 +193,11 @@ var WeightedNamespace;
     goals.push({ target: "processors", weight: function () { return getNumber("creativity") <= 100 && getNumber('memory') > 1 ? 1 : 0; } });
     goals.push({ target: "clips", weight: function () { return getNumber('wire') > 500 ? 10 : 0; } });
     goals.push({ target: "clips", weight: function () { return getNumber('clips') < 3000 && getNumber('wire') > 1000 ? 100 : 0; } });
+    goals.push({ target: "avgRev", weight: function () { return 1; } });
     goals.push({ target: "avgRev", weight: function () { return getNumber('clips') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
     goals.push({ target: "avgRev", weight: function () { return getNumber('funds') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
     goals.push({ target: "yomiDisplay", weight: function () { return elementExists('yomiDisplay') ? 1 : 0; } });
+    goals.push({ target: "secValue", weight: function () { return elementExists('investmentEngine') ? 1 : 0; } });
     goals.push({ target: "qChip", weight: function () {
             return sum(document.getElementsByClassName('qChip'), function (element) { return Number(element.style.opacity); }) > 0.2 && getNumber('operations') < getNumber('maxOps') ? 100 : 0;
         } });
@@ -289,11 +304,18 @@ var WeightedNamespace;
                     if (actions[i].value == "click" && !buttonEnabled(actions[i].id)) {
                         continue;
                     }
+                    else if (document.getElementById(actions[i].id).tagName == "SELECT"
+                        && getNumberFromValue(actions[i]) === document.getElementById(actions[i].id).selectedIndex) {
+                        continue;
+                    }
                     matchingActions.push(actions[i]);
                 }
             }
         }
         return matchingActions[Math.floor(Math.random() * matchingActions.length)];
+    }
+    function getNumberFromValue(action) {
+        return typeof action.value === "function" ? action.value() : action.value;
     }
     function applyAction(goalTarget, action) {
         if (action == null) {
@@ -302,13 +324,26 @@ var WeightedNamespace;
         else if (action.value == "click") {
             if (buttonEnabled(action.id)) {
                 clickButton(action.id);
-                reduceWeighting(goalTarget, 0.5);
+                reduceWeighting(goalTarget, 1.0);
                 console.log('Clicked ' + action.id);
             }
             else if (action.decrease != null) {
                 for (var i = 0; i < action.decrease.length; i++) {
                     applyGoal(action.decrease[i], 1);
                 }
+            }
+        }
+        else if (typeof action.value === "function") {
+            var number = action.value();
+            var target = document.getElementById(action.id);
+            if (target.tagName === "SELECT") {
+                console.log('Changed index of ' + action.id + ' to ' + number);
+                target.selectedIndex = number;
+            }
+            else {
+                // debugger;
+                console.log('Not sure what this is');
+                console.log(target);
             }
         }
         else {
