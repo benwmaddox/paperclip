@@ -121,7 +121,7 @@ var WeightedNamespace;
         return Number(element.innerText.replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', ''));
     }
     function cleanNumber(numberString) {
-        return Number(numberString.replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', ''));
+        return Number(numberString.replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace(',', '').replace('$', ''));
     }
     function elementExists(elementId) {
         var element = document.getElementById(elementId);
@@ -155,17 +155,17 @@ var WeightedNamespace;
     actions.push({ id: "btnAddMem", value: "click", increase: ["operations", "memory"], decrease: ["trust"] });
     actions.push({ id: "btnQcompute", value: "click", increase: ["qChip"], decrease: [] });
     actions.push({ id: "btnNewTournament", value: "click", increase: ["yomiDisplay"], decrease: ["operations"] });
-    actions.push({ id: "stratPicker", value: function () { return document.getElementById('stratPicker').selectedIndex - 1; }, increase: ["yomiDisplay"], decrease: ["operations"] });
     actions.push({ id: "btnRunTournament", value: "click", increase: ["yomiDisplay"], decrease: [] });
     actions.push({ id: "stratPicker", value: function () { return document.getElementById('stratPicker').length - 1; }, increase: ["yomiDisplay"], decrease: ["operations"] });
     actions.push({ id: "btnMakeMegaClipper", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds"] });
     actions.push({ id: "btnImproveInvestments", value: "click", increase: ["secValue"], decrease: ["yomiDisplay"] });
     actions.push({ id: "btnInvest", value: "click", increase: ["secValue"], decrease: ["funds"] });
+    actions.push({ id: "btnWithdraw", value: "click", increase: ["funds"], decrease: ["secValue"] });
     actions.push({ id: "investStrat", value: function () {
-            if (getNumber('investmentLevel') < 3) {
+            if (getNumber('investmentLevel') <= 2) {
                 return 0;
             }
-            else if (getNumber('investmentLevel') < 6) {
+            else if (getNumber('investmentLevel') <= 5) {
                 return 1;
             }
             else
@@ -199,7 +199,7 @@ var WeightedNamespace;
     goals.push({ target: "yomiDisplay", weight: function () { return elementExists('yomiDisplay') ? 1 : 0; } });
     goals.push({ target: "secValue", weight: function () { return elementExists('investmentEngine') ? 1 : 0; } });
     goals.push({ target: "qChip", weight: function () {
-            return sum(document.getElementsByClassName('qChip'), function (element) { return Number(element.style.opacity); }) > 0.2 && getNumber('operations') < getNumber('maxOps') ? 100 : 0;
+            return sum(document.getElementsByClassName('qChip'), function (element) { return Number(element.style.opacity); }) > 0.1 && getNumber('operations') < getNumber('maxOps') ? 100 : 0;
         } });
     function sum(list, selectionMethod) {
         var total = 0;
@@ -208,7 +208,6 @@ var WeightedNamespace;
         }
         return total;
     }
-    // TODO: lookup projects and take needed items, compare to what is already there and add appropriately
     var getProjectsThatCouldBeRun = function () {
         var enabledButtons = [];
         var disabledButtons = [];
@@ -252,6 +251,7 @@ var WeightedNamespace;
             clickButton(projects.enabled[0]);
         }
     }
+    // lookup projects and take needed items, compare to what is already there and add appropriately
     function addGoalsForNeededProjects() {
         var projectButtons = document.getElementsByClassName('projectButton');
         for (var i = 0; i < projectButtons.length; i++) {
@@ -261,7 +261,11 @@ var WeightedNamespace;
             for (var j = 0; j < costs.length; j++) {
                 var costSplit = costs[j].split(" ");
                 var number = cleanNumber(costSplit[0]);
-                var type = costSplit[1];
+                var type = costSplit.length > 0 ? costSplit[1] : "";
+                if (costSplit[0].startsWith("$") && number > getNumber('funds')) {
+                    applyGoal("funds", 1);
+                    applyGoal("secValue", 10);
+                }
                 if (type == "ops" && number > getNumber('maxOps')) {
                     applyGoal("operations", 1);
                 }
@@ -288,10 +292,6 @@ var WeightedNamespace;
             }
         }
         return null;
-        // TODO: add weighting...
-        // return goals[Math.floor(Math.random() * goals.length)];
-        // var goal = goals[0]
-        // return goal;
     }
     function findMatchingAction(target) {
         var matchingActions = [];
