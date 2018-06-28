@@ -231,7 +231,7 @@ namespace WeightedNamespace {
     goals.push({ target: "clips", weight: function () { return getNumber("clips") < 3000 ? 10 : 0; } });
     goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < 1000 && getNumber("wire") < 1000 && getNumber('clipmakerRate') > 5 ? 10 : 0; } });
     goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < getNumber("clipmakerRate") * 5 ? 100 : 0; } });
-    goals.push({ target: "wire", weight: function () { return getNumber("wire") < 1000  && getNumber('clipmakerRate') > 5 && !elementExists('btnToggleWireBuyer') ? 10 : 0; } });
+    goals.push({ target: "wire", weight: function () { return getNumber("wire") < 2000  && getNumber('clipmakerRate') > 5 && !elementExists('btnToggleWireBuyer') ? 10 : 0; } });
     goals.push({ target: "wire", weight: function () { return getNumber("wire") === 0 ? 100 : 0; } });
     goals.push({ target: "processors", weight: function () { return getNumber("creativity") <= 100 && getNumber('memory') > 1 ? 1 : 0; } });
     goals.push({ target: "clips", weight: function () { return getNumber('wire') > 500 ? 10 : 0; } });
@@ -391,7 +391,7 @@ function applyAction(goalTarget : ResourceOrVelocity, action : Action){
     else if (action.value == "click"){
         if (buttonEnabled(action.id)) {
             clickButton(action.id);
-            reduceWeighting(goalTarget, 1.0);
+            reduceWeighting(goalTarget, 0.5);
             console.log('Clicked ' + action.id);
         }
         else if (action.decrease != null){
@@ -409,7 +409,8 @@ function applyAction(goalTarget : ResourceOrVelocity, action : Action){
         }
         if (target.tagName === "SELECT"){            
             console.log('Changed index of ' + action.id + ' to ' + number);
-            (<HTMLSelectElement>target).selectedIndex = number;
+            (<HTMLSelectElement>target).selectedIndex = number;            
+            reduceWeighting(goalTarget, 0.5);
         }
         else{
             // debugger;
