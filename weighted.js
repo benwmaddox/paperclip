@@ -148,7 +148,7 @@ var WeightedNamespace;
     actions.push({ id: "btnMakePaperclip", value: "click", increase: ["clips"], decrease: ["wire"] });
     actions.push({ id: "btnBuyWire", value: "click", increase: ["wire"], decrease: ["funds"] });
     actions.push({ id: "btnExpandMarketing", value: "click", increase: ["avgRev"], decrease: ["funds", "secValue"] });
-    actions.push({ id: "btnMakeClipper", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds"] });
+    actions.push({ id: "btnMakeClipper", value: "click", increase: ["unsoldClips"], decrease: ["funds"] });
     actions.push({ id: "btnLowerPrice", value: "click", increase: ["funds", "avgRev"], decrease: ["unsoldClips"] });
     actions.push({ id: "btnRaisePrice", value: "click", increase: ["unsoldClips"], decrease: ["funds", "avgRev"] });
     actions.push({ id: "btnAddProc", value: "click", increase: ["creativity", "processors"], decrease: ["trust"] });
@@ -301,17 +301,17 @@ var WeightedNamespace;
                 continue;
             for (var j = 0; j < increase.length; j++) {
                 if (increase[j] == target) {
-                    if (actions[i].value == "click" && !buttonEnabled(actions[i].id)) {
-                        continue;
-                    }
-                    else if (document.getElementById(actions[i].id) != null) {
-                        var element = document.getElementById(actions[i].id);
-                        if (element != null
-                            && element.tagName == "SELECT"
-                            && getNumberFromValue(actions[i]) === element.selectedIndex) {
-                            continue;
-                        }
-                    }
+                    // if (actions[i].value == "click" && !buttonEnabled(actions[i].id)){
+                    //     continue;
+                    // }            
+                    // else if (document.getElementById(actions[i].id) != null ){
+                    //     var element = document.getElementById(actions[i].id);
+                    //     if (element != null 
+                    //         && element.tagName == "SELECT" 
+                    //         && getNumberFromValue(actions[i]) === (<HTMLSelectElement>element).selectedIndex ){
+                    //         continue;
+                    //     }
+                    // }    
                     matchingActions.push(actions[i]);
                 }
             }
@@ -321,19 +321,57 @@ var WeightedNamespace;
     function getNumberFromValue(action) {
         return typeof action.value === "function" ? action.value() : action.value;
     }
+    WeightedNamespace.reserveCosts = {};
+    function setReserveCost(id, item) {
+        var reservation = WeightedNamespace.reserveCosts[item] || {
+            item: item,
+            id: id,
+            ticks: 100
+        };
+        WeightedNamespace.reserveCosts[item] = reservation;
+    }
+    function isCostReserved(id, items) {
+        if (items == null) {
+            return false;
+        }
+        for (var i = 0; i < items.length; i++) {
+            var reservation = WeightedNamespace.reserveCosts[items[i]];
+            return reservation && reservation.id != id && reservation.ticks > 0;
+        }
+        return false;
+    }
+    function reduceReserveCost(items) {
+        if (items == null) {
+            return;
+        }
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var reservation = WeightedNamespace.reserveCosts[item];
+            if (reservation && reservation.ticks > 0) {
+                reservation.ticks--;
+            }
+            WeightedNamespace.reserveCosts[item] = reservation;
+        }
+    }
     function applyAction(goalTarget, action) {
         if (action == null) {
             reduceWeighting(goalTarget, 0.1);
         }
         else if (action.value == "click") {
             if (buttonEnabled(action.id)) {
-                clickButton(action.id);
-                reduceWeighting(goalTarget, 0.5);
-                console.log('Clicked ' + action.id);
+                if (isCostReserved(action.id, action.decrease)) {
+                    reduceReserveCost(action.decrease);
+                }
+                else {
+                    clickButton(action.id);
+                    reduceWeighting(goalTarget, 0.5);
+                    console.log('Clicked ' + action.id);
+                }
             }
             else if (action.decrease != null) {
                 for (var i = 0; i < action.decrease.length; i++) {
                     applyGoal(action.decrease[i], 1);
+                    setReserveCost(action.id, action.decrease[i]);
                 }
             }
         }
