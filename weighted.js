@@ -347,10 +347,18 @@ var WeightedNamespace;
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
             var reservation = WeightedNamespace.reserveCosts[item];
-            if (reservation && reservation.ticks > 0) {
+            if (reservation == undefined) {
+                continue;
+            }
+            if (reservation.ticks > 0) {
                 reservation.ticks--;
             }
-            WeightedNamespace.reserveCosts[item] = reservation;
+            if (reservation.ticks <= 0) {
+                delete WeightedNamespace.reserveCosts[item];
+            }
+            else {
+                WeightedNamespace.reserveCosts[item] = reservation;
+            }
         }
     }
     function applyAction(goalTarget, action) {

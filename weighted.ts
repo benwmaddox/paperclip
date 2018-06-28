@@ -419,10 +419,18 @@ function reduceReserveCost(items? : ResourceOrVelocity[]){
     for (var i = 0; i < items.length; i++){
         var item = items[i];
         var reservation : ReserveCostItem = reserveCosts[item];
-        if (reservation && reservation.ticks >0){
+        if (reservation == undefined){
+            continue;
+        }
+        if (reservation.ticks > 0){
             reservation.ticks--;
         }
-        reserveCosts[item] = reservation;
+        if (reservation.ticks <= 0){
+            delete reserveCosts[item];
+        }
+        else {
+            reserveCosts[item] = reservation;
+        }
     }
 }
 
