@@ -148,9 +148,9 @@ var WeightedNamespace;
     actions.push({ id: "btnMakePaperclip", value: "click", increase: ["clips"], decrease: ["wire"] });
     actions.push({ id: "btnBuyWire", value: "click", increase: ["wire"], decrease: ["funds"] });
     actions.push({ id: "btnExpandMarketing", value: "click", increase: ["avgRev"], decrease: ["funds", "secValue"] });
-    actions.push({ id: "btnMakeClipper", value: "click", increase: ["unsoldClips"], decrease: ["funds"] });
-    actions.push({ id: "btnLowerPrice", value: "click", increase: ["funds", "avgRev"], decrease: ["unsoldClips"] });
-    actions.push({ id: "btnRaisePrice", value: "click", increase: ["unsoldClips"], decrease: ["funds", "avgRev"] });
+    actions.push({ id: "btnMakeClipper", value: "click", increase: ["unsoldClips"], decrease: ["funds", "wire"] });
+    actions.push({ id: "btnLowerPrice", value: "click", increase: ["avgRev"], decrease: [] });
+    actions.push({ id: "btnRaisePrice", value: "click", increase: ["unsoldClips"], decrease: [] });
     actions.push({ id: "btnAddProc", value: "click", increase: ["creativity", "processors"], decrease: ["trust"] });
     actions.push({ id: "btnAddMem", value: "click", increase: ["operations", "memory"], decrease: ["trust"] });
     actions.push({ id: "btnQcompute", value: "click", increase: ["qChip"], decrease: [] });
@@ -171,6 +171,7 @@ var WeightedNamespace;
             else
                 return 2;
         }, increase: ["secValue"], decrease: ["funds"] });
+    // actions.push({id: "", value: "click", increase: ["trust"], decrease: ["unsoldClips"] });
     var goals = [];
     var weightedGoals = {};
     var applyGoal = function (goal, weight) {
@@ -187,6 +188,7 @@ var WeightedNamespace;
     }
     goals.push({ target: "clips", weight: function () { return getNumber("clips") < 3000 ? 10 : 0; } });
     goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < 1000 && getNumber("wire") < 1000 && getNumber('clipmakerRate') > 5 ? 10 : 0; } });
+    goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < 3000 ? 1 : 0; } });
     goals.push({ target: "unsoldClips", weight: function () { return getNumber("unsoldClips") < getNumber("clipmakerRate") * 5 ? 100 : 0; } });
     goals.push({ target: "wire", weight: function () { return getNumber("wire") < 2000 && getNumber('clipmakerRate') > 5 && !elementExists('btnToggleWireBuyer') ? 10 : 0; } });
     goals.push({ target: "wire", weight: function () { return getNumber("wire") === 0 ? 100 : 0; } });
@@ -194,8 +196,8 @@ var WeightedNamespace;
     goals.push({ target: "clips", weight: function () { return getNumber('wire') > 500 ? 10 : 0; } });
     goals.push({ target: "clips", weight: function () { return getNumber('clips') < 3000 && getNumber('wire') > 1000 ? 100 : 0; } });
     goals.push({ target: "avgRev", weight: function () { return 1; } });
-    goals.push({ target: "avgRev", weight: function () { return getNumber('clips') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
-    goals.push({ target: "avgRev", weight: function () { return getNumber('funds') < 1000 && getNumber("unsoldClips") > 100 ? 10 : 0; } });
+    goals.push({ target: "avgRev", weight: function () { return getNumber('clips') < 1000 && getNumber("unsoldClips") > 1000 ? 10 : 0; } });
+    goals.push({ target: "avgRev", weight: function () { return getNumber('funds') < 1000 && getNumber("unsoldClips") > 1000 ? 10 : 0; } });
     goals.push({ target: "yomiDisplay", weight: function () { return elementExists('yomiDisplay') && getNumber('operations') * 2 >= getNumber("maxOps") ? 10 : 0; } });
     goals.push({ target: "secValue", weight: function () { return elementExists('investmentEngine') ? 1 : 0; } });
     goals.push({ target: "qChip", weight: function () {
