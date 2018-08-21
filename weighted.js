@@ -145,10 +145,10 @@ var WeightedNamespace;
     var projectList = [];
     var initialClipLastRun = new Date().getTime() - 11000;
     var actions = [];
-    actions.push({ id: "btnMakePaperclip", value: "click", increase: ["clips"], decrease: ["wire"] });
+    actions.push({ id: "btnMakePaperclip", value: "click", increase: ["clips"], decrease: ["wire"], removeWhen: function () { return getNumber('clips') > 5000; } });
     actions.push({ id: "btnBuyWire", value: "click", increase: ["wire"], decrease: ["funds"] });
     actions.push({ id: "btnExpandMarketing", value: "click", increase: ["avgRev"], decrease: ["funds", "secValue"] });
-    actions.push({ id: "btnMakeClipper", value: "click", increase: ["unsoldClips"], decrease: ["funds", "wire"] });
+    actions.push({ id: "btnMakeClipper", value: "click", increase: ["clips", "unsoldClips", "avgRev"], decrease: ["funds", "wire"] });
     actions.push({ id: "btnLowerPrice", value: "click", increase: ["avgRev"], decrease: [] });
     actions.push({ id: "btnRaisePrice", value: "click", increase: ["unsoldClips"], decrease: [] });
     actions.push({ id: "btnAddProc", value: "click", increase: ["creativity", "processors"], decrease: ["trust"] });
@@ -157,7 +157,7 @@ var WeightedNamespace;
     actions.push({ id: "btnNewTournament", value: "click", increase: ["yomiDisplay"], decrease: ["operations"] });
     actions.push({ id: "btnRunTournament", value: "click", increase: ["yomiDisplay"], decrease: [] });
     actions.push({ id: "stratPicker", value: function () { return document.getElementById('stratPicker').length - 1; }, increase: ["yomiDisplay"], decrease: ["operations"] });
-    actions.push({ id: "btnMakeMegaClipper", value: "click", increase: ["unsoldClips", "clips"], decrease: ["funds"] });
+    actions.push({ id: "btnMakeMegaClipper", value: "click", increase: ["avgRev", "unsoldClips", "clips"], decrease: ["funds"] });
     actions.push({ id: "btnImproveInvestments", value: "click", increase: ["secValue"], decrease: ["yomiDisplay"] });
     actions.push({ id: "btnInvest", value: "click", increase: ["secValue"], decrease: ["funds"] });
     actions.push({ id: "btnWithdraw", value: "click", increase: ["funds"], decrease: ["secValue"] });
@@ -243,10 +243,20 @@ var WeightedNamespace;
         }
         projectRunning();
         addGoalsForNeededProjects();
+        removeActions();
         // runNextProject();        
         console.log(weightedGoals);
         setTimeout(WeightedNamespace.automation, WeightedNamespace.automationTimeout);
     };
+    function removeActions() {
+        for (var i = 0; i < actions.length; i++) {
+            if (actions[i].removeWhen && actions[i].removeWhen()) {
+                console.log('Removing action ' + actions[i].id);
+                actions.splice(i, 1);
+                return;
+            }
+        }
+    }
     function projectRunning() {
         var projects = getProjectsThatCouldBeRun();
         if (projects.enabled.length > 0) {
