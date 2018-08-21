@@ -288,6 +288,7 @@ namespace WeightedNamespace {
         if (goal != null){
             var action : Action = findMatchingAction(goal);
             applyAction(goal, action);
+            
         }
 
         projectRunning();
@@ -360,6 +361,7 @@ function findMatchingAction(target : ResourceOrVelocity){
     for (var i=0; i < actions.length; i++){
         var increase = actions[i].increase;        
         if (increase == null) continue;
+        if (!elementExists(actions[i].id)) continue;
         for (var j=0; j< increase.length;j++){
             if (increase[j] == target){
                 // if (actions[i].value == "click" && !buttonEnabled(actions[i].id)){
@@ -397,7 +399,7 @@ function setReserveCost(id : string, item : ResourceOrVelocity){
     var reservation : ReserveCostItem  = reserveCosts[item] || {
         item: item,
         id: id,
-        ticks: 100
+        ticks: 25
     }
     reserveCosts[item] = reservation;
 }
@@ -437,11 +439,13 @@ function reduceReserveCost(items? : ResourceOrVelocity[]){
 function applyAction(goalTarget : ResourceOrVelocity, action : Action){
     if (action == null) {
         reduceWeighting(goalTarget, 0.1);
+        console.log(goalTarget + " goal was given with no action")
     }
     else if (action.value == "click"){
         if (buttonEnabled(action.id)) {
             if (isCostReserved(action.id, action.decrease)){
                 reduceReserveCost(action.decrease)
+                console.log(`${goalTarget} with ${action.id} had reservation blocking it.`)
             }
             else{
                 clickButton(action.id);
@@ -451,9 +455,16 @@ function applyAction(goalTarget : ResourceOrVelocity, action : Action){
             
         }
         else if (action.decrease != null){
+            
+            if (isCostReserved(action.id, action.decrease)){
+                reduceReserveCost(action.decrease);
+                return;
+            }              
+
             for(var i =0;i< action.decrease.length;i++){
                 applyGoal(action.decrease[i], 1);
                 setReserveCost(action.id, action.decrease[i]);
+                console.log(`${goalTarget} with ${action.id} was not enabled.`)
             }            
         }
     }
